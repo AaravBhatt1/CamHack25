@@ -115,7 +115,7 @@ def okp(x):
     print(f"RECIEVED {x}")
 
 if __name__ == "__main__":
-    main(okp, ofd)
+    start_listener(okp, ofd)
 
 # keystr conventions:
 # This is what is used on Linux, currently the windows version does not map to these but it will
