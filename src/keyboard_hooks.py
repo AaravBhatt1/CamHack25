@@ -4,7 +4,7 @@ import json
 import selectors
 import threading
 import time
-
+import platform
 
 _keyPressBuf = []
 _keyPressLock= threading.Lock()
@@ -75,9 +75,33 @@ def linuxKeyReader(onKeyPress):
             ui.close()
         _stop = True
 
+def windowsKeyReader(onKeyPress):
+    global _keyPressBuf
+    global _keyPressLock
+    global _stop
     
+    while True:
+        event = keyboard.read_event()
+        if event.event_type == "down":
+            if event.name == "unknown":
+                continue
+            if event.name == "esc":
+                break
+            with _keyPressLock:
+                _keyPressBuf.append((event.name.upper, event.time))
+    _stop = True
+                
+
 def main(onKeyPress, onFinishDraw):
-    producer = threading.Thread(target=lambda : linuxKeyReader(onKeyPress), daemon=True)
+    producer = 0
+    if platform.system() == "Linux":
+        producer = threading.Thread(target=lambda : linuxKeyReader(onKeyPress), daemon=True)
+    elif platform.system() == "Windows":
+        producer = threading.Thread(target=lambda : windowsKeyReader(onKeyPress), daemon=True)
+    else:
+        print("This is only compatible with Windows and Linux")
+        raise Exception("Incompatible platform")
+
     consumer = threading.Thread(target=lambda : dispatcher(ofd), daemon=True)
 
     producer.start()
@@ -93,4 +117,5 @@ def okp(x):
 
 if __name__ == "__main__":
     main(okp, ofd)
+
 
