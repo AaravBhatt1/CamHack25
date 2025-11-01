@@ -5,13 +5,22 @@ from keyboard_hooks import KeyHook
 from prediction.inference import predict_letter_from_image
 import math
 import matplotlib
+from multiprocessing.managers import BaseManager
+
+class QueueManager(BaseManager): pass
 
 mapper = CharMapper(rotate=False)
 context = ""
 ocr_bias = 0.95
 
+QueueManager.register("get_queue")
+keyQueueMgr = QueueManager(address=('localhost', 50000), authkey=b'abc')
+keyQueueMgr.connect()
+
 def add_key(key: str):
     print(f"key {key}")
+    q = keyQueueMgr.get_queue()
+    q.put(key)
 
 def get_prediction(text_preds: dict[str, float], img_preds: dict[str, float], weight=ocr_bias) -> str:
     best = ""
