@@ -42,7 +42,7 @@ class EMNISTPredictor:
         print(f"Model loaded from {model_path}")
         print(f"Using device: {self.device}")
 
-    def predict_probabilities(self, image_array):
+    def predict_probabilities(self, image_array: np.ndarray) -> dict[str, float]:
         """
         Predict probability distribution over all 26 characters (A-Z only).
 
@@ -94,7 +94,7 @@ class EMNISTPredictor:
 _global_predictor = None
 
 
-def get_probabilities(image_array, model_path=None):
+def predict_letter_from_image(image_array: np.ndarray, model_path=None) -> dict[str, float]:
     """
     Convenience function to get probability distribution.
     Loads model on first call and reuses it.
