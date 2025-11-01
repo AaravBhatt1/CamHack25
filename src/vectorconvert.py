@@ -2,19 +2,18 @@ import numpy as np
 from scipy.interpolate import splprep, splev
 from scipy.ndimage import gaussian_filter
 
-def _is_adjacent(a: tuple[float, float, float], b: tuple[float, float, float]) -> bool:
+def _is_adjacent(a: tuple[float, float], b: tuple[float, float]) -> bool:
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
-def _get_strokes(data: list[tuple[float, float, float]]) -> list[list[tuple[float, float, float]]]:
-    sorted_data = sorted(data, key = lambda p: p[2])
+def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, float]]]:
     strokes = []
     current = [data[0]]
-    for i in range(1, len(sorted_data)):
-        if not _is_adjacent(sorted_data[i], sorted_data[i-1]):
+    for i in range(1, len(data)):
+        if not _is_adjacent(data[i], data[i-1]):
             strokes.append(current)
-            current = [sorted_data[i]]
+            current = [data[i]]
         else:
-            current.append(sorted_data[i])
+            current.append(data[i])
     strokes.append(current)
     return strokes
 
@@ -48,7 +47,7 @@ def _get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
     bw_grid = grid
     return bw_grid
 
-def get_image_for_ocr(data):
+def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
     x = np.array([])
     y = np.array([])
 

@@ -1,6 +1,5 @@
 import evdev
 import keyboard
-import json
 import selectors
 import threading
 import time
@@ -92,7 +91,7 @@ def windowsKeyReader(onKeyPress):
     _stop = True
                 
 
-def main(onKeyPress, onFinishDraw):
+def start_listener(onKeyPress, onFinishDraw):
     producer = 0
     if platform.system() == "Linux":
         producer = threading.Thread(target=lambda : linuxKeyReader(onKeyPress), daemon=True)
