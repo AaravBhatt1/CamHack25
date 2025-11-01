@@ -2,17 +2,16 @@ import numpy as np
 from scipy.interpolate import splprep, splev
 from scipy.ndimage import gaussian_filter
 
+def _is_adjacent(a: tuple[float, float], b: tuple[float, float]) -> bool:
+    return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
-def is_adjacent(a, b):
-    return abs(a[0] - b[0]) <= 1 and abs(a[1] - b[1]) <= 1
-
-
-def get_strokes(data):
-    sorted_data = sorted(data, key=lambda p: p[2])
+def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, float]]]:
+    if not data:
+        return []
     strokes = []
     current = [data[0]]
-    for i in range(1, len(sorted_data)):
-        if not is_adjacent(sorted_data[i], sorted_data[i - 1]):
+    for i in range(1, len(data)):
+        if not _is_adjacent(data[i], data[i-1]):
             strokes.append(current)
             current = [data[i]]
         else:
@@ -20,46 +19,19 @@ def get_strokes(data):
     strokes.append(current)
     return strokes
 
+def _get_curve(x: list[float], y: list[float], noise=0.01) -> tuple[np.ndarray, np.ndarray]:
+    if (len(x) < 3):
+        return np.array(x), np.array(y)
+    tck, _ = splprep([x, y], s=0, k=min(3, len(x)-1))
+    u_fine = np.linspace(0, 1, 200)
 
-def get_curve(x, y, noise=0.1):
-    if len(x) < 3:
-        return x, y
-
-    # Convert to numpy arrays
-    x = np.array(x)
-    y = np.array(y)
-
-    # Remove duplicate consecutive points
-    unique_mask = np.concatenate([[True], (np.diff(x) != 0) | (np.diff(y) != 0)])
-    x = x[unique_mask]
-    y = y[unique_mask]
-
-    # Check if we still have enough points after removing duplicates
-    if len(x) < 2:
-        return x, y
-    if len(x) < 3:
-        # Just return original points with slight noise, no curve fitting
-        return x + np.random.normal(0, noise, size=x.shape), y + np.random.normal(
-            0, noise, size=y.shape
-        )
-
-    try:
-        tck, u = splprep([x, y], s=0, k=min(3, len(x) - 1))
-        u_fine = np.linspace(0, 1, 200)
-        x_smooth, y_smooth = splev(u_fine, tck)
-        x_smooth += np.random.normal(0, noise, size=x_smooth.shape)
-        y_smooth += np.random.normal(0, noise, size=y_smooth.shape)
-        return x_smooth, y_smooth
-    except (ValueError, TypeError):
-        # If spline fitting fails, return original points with noise
-        return x + np.random.normal(0, noise, size=x.shape), y + np.random.normal(
-            0, noise, size=y.shape
-        )
+    x_smooth, y_smooth = splev(u_fine, tck)
+    x_smooth += np.random.normal(0, noise, size=x_smooth.shape)
+    y_smooth += np.random.normal(0, noise, size=y_smooth.shape)
+    return x_smooth, y_smooth
 
 
-def get_bins(x, y, noise=0.2):
-    x = np.array(x)
-    y = np.array(y)
+def _get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
     x -= x.mean()
     y -= y.mean()
     scale = max(x.max() - x.min(), y.max() - y.min(), 1e-5)
@@ -73,13 +45,11 @@ def get_bins(x, y, noise=0.2):
 
     if grid.max() > 0:
         grid /= grid.max()
-    grid = grid**0.03
-    # Flip the grid vertically so it displays correctly
-    bw_grid = np.flipud(grid)
+    grid = grid ** 0.025
+    bw_grid = grid
     return bw_grid
 
-
-def get_image_for_ocr(data):
+def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
     x = np.array([])
     y = np.array([])
 

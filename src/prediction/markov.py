@@ -9,7 +9,6 @@ _model_loaded = False
 _CORPUS_PATH = Path(__file__).parent / "corpus.txt"
 _MODEL_PATH = Path(__file__).parent / "markov_model.pkl"
 
-
 def _train_model():
     global _model_probs
 
@@ -41,7 +40,7 @@ def _load_or_train_model():
         _train_model()
     _model_loaded = True
 
-def predict_next_letter(context: str) -> list[tuple[str, float]]:
+def predict_next_letter(context: str) -> dict[str, float]:
     if not _model_loaded:
         _load_or_train_model()
     context = context.upper()[-_order:]
@@ -58,8 +57,8 @@ def predict_next_letter(context: str) -> list[tuple[str, float]]:
     
     # remove space prediction
     probs.pop(' ', None)
-    return sorted(probs.items(), key = lambda x: x[1], reverse=True)
-
+    return probs
+                
 if __name__ == "__main__":
     while(True):
         context = input(">")
