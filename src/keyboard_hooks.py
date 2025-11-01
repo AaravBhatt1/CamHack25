@@ -42,31 +42,36 @@ def keyReader():
 
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     forwarderDevices = [evdev.UInput.from_device(dev, name=f"{dev.name}-forwarded") for dev in devices]
-
-    for d in devices:
-        d.grab()
-        selector.register(d, selectors.EVENT_READ)
-    while True:
-        for key, mask in selector.select():
-            device = key.fileobj
-            for e in device.read():
-                event = evdev.categorize(e)
-                # print(event, type(event), "\n\n")
-                if isinstance(event, evdev.events.KeyEvent) and event.keystate == 1 and event.keycode.startswith("KEY_"):
-                    _,keystr = event.keycode.split("_")
-                    timestamp = event.event.timestamp()
-                    if (keystr == "ESC"):
-                        break
-                    with _keyPressLock:
-                        _keyPressBuf.append((keystr, timestamp))
-                else:
-                    # Forward the event
-                    print("I NEED TO FORWARD THE EVENT")
-    for d in devices:
-        d.ungrab()
-    for ui in forwarderDevies:
-        ui.close()
-    _stop = True
+    try:
+        for i,d in enumerate(devices):
+            d.grab()
+            selector.register(d, selectors.EVENT_READ, data=i)
+        localStop = False
+        while not localStop:
+            for key, mask in selector.select():
+                device = key.fileobj
+                index = int(key.data)
+                for e in device.read():
+                    event = evdev.categorize(e)
+                    # print(event, type(event), "\n\n")
+                    if isinstance(event, evdev.events.KeyEvent) and event.keystate == 1 and event.keycode.startswith("KEY_"):
+                        _,keystr = event.keycode.split("_")
+                        timestamp = event.event.timestamp()
+                        if (keystr == "ESC"):
+                            localStop = False
+                            return
+                        with _keyPressLock:
+                            _keyPressBuf.append((keystr, timestamp))
+                    else:
+                        # Forward the event
+                        forwarderDevices[index].write_event(event)
+                        forwarderDevices[index].syn()
+    finally:
+        for d in devices:
+            d.ungrab()
+        for ui in forwarderDevices:
+            ui.close()
+        _stop = True
 def main(onFinishDraw):
     producer = threading.Thread(target=keyReader, daemon=True)
     consumer = threading.Thread(target=lambda : dispatcher(ofd), daemon=True)
