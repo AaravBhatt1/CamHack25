@@ -1,5 +1,7 @@
 import tkinter as tk
-from pynput import keyboard
+import time
+from Queue import Empty
+from multiprocessing.managers import BaseManager
 
 # --- Configuration ---
 # Define a comprehensive coordinate map for keys based on a standard QWERTY layout.
@@ -80,77 +82,26 @@ KEY_MAP = {
     'END': (675, 75),
     'PAGEUP': (625, 25),
     'PAGEDOWN': (675, 25)
-    
-    # Bottom row - modifiers and space
-    # keyboard.Key.ctrl_l: (75, 250),
-    # keyboard.Key.cmd: (125, 250),
-    # keyboard.Key.alt_l: (175, 250),
-    # keyboard.Key.space: (400, 250),  # Centered, wide key
-    # keyboard.Key.alt_gr: (625, 250),
-    # keyboard.Key.menu: (675, 250),
-    # keyboard.Key.ctrl_r: (725, 250),
-    
-    # # Arrow keys
-    # keyboard.Key.left: (625, 300),
-    # keyboard.Key.down: (675, 300),
-    # keyboard.Key.right: (725, 300),
-    # keyboard.Key.up: (675, 250),
-    
-    # # Additional keys
-    # keyboard.Key.esc: (50, 25),
-    # keyboard.Key.delete: (725, 75),
-    # keyboard.Key.home: (625, 75),
-    # keyboard.Key.end: (675, 75),
-    # keyboard.Key.page_up: (625, 25),
-    # keyboard.Key.page_down: (675, 25)
 }
 
 # --- Global State ---
 key_history = []
 MAX_HISTORY = 10 # Only display the last 10 keypresses
 
-# --- Tkinter Setup ---
-root = tk.Tk()
-root.title("Real-Time Keyboard Visualizer")
-canvas = tk.Canvas(root, width=1000, height=400, bg='black')
-canvas.pack()
-
-# def on_press(key):
-#     try:
-#         # Get the character or key name
-#         key_char = key.char if hasattr(key, 'char') else key 
-#     except AttributeError:
-#         # For special keys like Shift, Ctrl, etc., just use the key object
-#         key_char = key
-
-#     if key_char in KEY_MAP:
-#         # 1. Get position from map
-#         pos = KEY_MAP[key_char]
-        
-#         # 2. Update key history
-#         key_history.append((key_char, pos))
-#         if len(key_history) > MAX_HISTORY:
-#             key_history.pop(0)
-            
-#         # 3. Request a screen update
-#         # Tkinter will call the update_display function shortly
-#         root.after(10, update_display)
-
-#     # Note: Returning False stops the listener. We want it to run continuously.
-#     # print(f'{key_char} pressed')
+class QueueManager(BaseManager): pass
 
 def on_press(key):
-    if key in KEY_MAP:
-        # 1. Get position from map
-        pos = KEY_MAP[key]
+   
+    if key in KEY_MAP or key in ['D']:
+        # Get position from map
+        pos = KEY_MAP[key]        
         
-        # 2. Update key history
+        # Update key history
         key_history.append((key, pos))
         if len(key_history) > MAX_HISTORY:
             key_history.pop(0)
             
-        # 3. Request a screen update
-        # Tkinter will call the update_display function shortly
+        # Request a screen update
         root.after(10, update_display)
 
 def update_display():
@@ -160,7 +111,8 @@ def update_display():
     title_text = "LAST 10 KEYPRESSES (QWERTY LAYOUT)"
     canvas.create_text(300, 20, text=title_text, fill='white', font=('Arial', 14))
 
-    # # Draw a representation of all tracked keys for context
+    # Draw a representation of all tracked keys for context
+
     # for key_char, (x, y) in KEY_MAP.items():
     #     # Draw a dim background circle for all available keys
     #     canvas.create_oval(x-15, y-15, x+15, y+15, outline='#333333')
@@ -181,12 +133,52 @@ def update_display():
 
     root.update_idletasks() # Force redraw
 
-    # Create and start the listener thread
-listener = keyboard.Listener(on_press=on_press)
-listener.start()
+# Queue polling
+def check_queue(root, q, delay = 50):
+    if running:
+        try:
+            key = str(q.get_nowait()).upper()[1:-1]
+            if key != 'ESC':  # Check if key is not ESC
+                on_press(key)
+        except Empty:
+            pass
+        finally:
+            root.after(delay, check_queue, root, q)  # Schedule next check
 
-# Start the Tkinter main loop
-root.mainloop()
+# To be called when the Tkinter window closes
+def on_closing():
+    global running
+    running = False
+    root.destroy()
+
+if __name__ == "__main__":
+    # Global flag to control the queue polling loop
+    running = True  
+    
+    # Tkinter Setup
+    root = tk.Tk()
+    root.title("Real-Time Keyboard Visualizer")
+    canvas = tk.Canvas(root, width=1000, height=400, bg='black')
+    canvas.pack()
+    
+    # Set up window close handler
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
+    # Server setup 
+    QueueManager.register('get_queue')
+
+    # The only thing being sent through this queue is characters so authkey=b'abc' is fine
+    m = QueueManager(address=('localhost', 50000), authkey=b'abc')
+    m.connect()
+    q = m.get_queue()
+
+    # Start queue checking
+    check_queue(root, q)
+    
+    # Start tk window loop
+    root.mainloop()
+
+    print("Window closed, shutting down...")
 
 # Stop the listener thread when the Tkinter window is closed
-listener.stop()
+# listener.stop()
