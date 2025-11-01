@@ -25,7 +25,7 @@ def init_model():
     with open("markov_model.pkl", "wb") as f:
         pickle.dump(model_probs, f)
 
-def predict_next_letter(context, probs):
+def predict_next_letter(context: str, probs) -> dict[str, float]:
     context = context.upper()[-order:]
     if context in probs:
         return probs[context]
