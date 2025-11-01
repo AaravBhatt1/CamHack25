@@ -152,4 +152,4 @@ SPACE
 RIGHTALT
 COMPOSE (apps/menu)
 Arrow keys: LEFT/DOWN/UP/RIGHT
-
+"""
