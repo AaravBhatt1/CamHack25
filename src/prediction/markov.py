@@ -55,6 +55,9 @@ def predict_next_letter(context: str) -> list[tuple[str, float]]:
     else:
         letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         probs = {c: 1/len(letters) for c in letters}
+    
+    # remove space prediction
+    probs.pop(' ', None)
     return sorted(probs.items(), key = lambda x: x[1], reverse=True)
 
 if __name__ == "__main__":
