@@ -1,17 +1,16 @@
 from typing import Tuple
 from typing import Protocol, TypeVar
 
-Number = TypeVar('Number', int, float)
-
+Number = TypeVar("Number", int, float)
 
 
 class CharMapper:
-    def __init__(self, layout="English", rotate=True):
+    def __init__(self, layout="English", rotate=False):
         # Currently Does Not Do Anything
         self.layout = layout
         self.rotate = rotate
 
-    def charMap(self, char:str) -> Tuple[Number, Number] | None:
+    def charMap(self, char: str) -> Tuple[Number, Number] | None:
         if self.layout == "English":
             # Define keyboard layout coordinates (x, y) for British English MacBook layout
             keyboard_map = {
@@ -87,20 +86,25 @@ class CharMapper:
             else:
                 return coords
 
-
-    def averagePoints(self, chars:list[list[str]]) -> list[Tuple[Number, Number]]:
+    def averagePoints(self, chars: list[list[str]]) -> list[Tuple[Number, Number]]:
         o = []
         for i in chars:
-            nl:list[Tuple[Number, Number]] = [x for x in map(self.charMap, i) if x is not None]
+            nl: list[Tuple[Number, Number]] = [
+                x for x in map(self.charMap, i) if x is not None
+            ]
             if nl == []:
                 continue
-            o.append((sum(map(lambda x:x[0], nl)) / len(nl), sum(map(lambda x:x[1], nl)) / len(nl)))
+            o.append(
+                (
+                    sum(map(lambda x: x[0], nl)) / len(nl),
+                    sum(map(lambda x: x[1], nl)) / len(nl),
+                )
+            )
         return o
 
-    def movePoints(self, points:list[tuple[Number, Number]]):
-        translateX = min(map(lambda x:x[0], points))
+    def movePoints(self, points: list[tuple[Number, Number]]):
+        translateX = min(map(lambda x: x[0], points))
         return list(map(lambda x: (x[0] - translateX, x[1]), points))
-
 
 
 # TEST
