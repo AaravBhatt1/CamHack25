@@ -1,4 +1,5 @@
 import evdev
+from evdev.device import InputDevice
 import keyboard
 import selectors
 import threading
@@ -8,12 +9,12 @@ import platform
 _keyPressBuf = []
 _keyPressLock= threading.Lock()
 
-_stop = False
+_stop = threading.Event()
 
 def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
     global _keyPressBuf
     global _keyPressLock
-    while not _stop:
+    while not _stop.is_set():
         time.sleep(0.1)
         if (len(_keyPressBuf) == 0 or time.time() - _keyPressBuf[-1][1] < timeBetweenLetters):
             continue
@@ -33,6 +34,15 @@ def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
         onFinishDraw(toDispatch)
 
 
+def get_linux_keyboards() -> list[InputDevice]:
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    kbs = []
+    for d in devices:
+        caps = d.capabilities()
+        if evdev.ecodes.EV_KEY in caps and evdev.ecodes.EV_REL not in caps and evdev.ecodes.EV_ABS not in caps:
+            kbs.append(d)
+    return kbs
+
 
 def linuxKeyReader(onKeyPress):
     global _keyPressBuf
@@ -40,39 +50,30 @@ def linuxKeyReader(onKeyPress):
     global _stop
     selector = selectors.DefaultSelector()
 
-    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-    forwarderDevices = [evdev.UInput.from_device(dev, name=f"{dev.name}-forwarded") for dev in devices]
+    kbs = get_linux_keyboards()
+
     try:
-        for i,d in enumerate(devices):
+        for i,d in enumerate(kbs):
             d.grab()
             selector.register(d, selectors.EVENT_READ, data=i)
         localStop = False
         while not localStop:
             for key, mask in selector.select():
                 device = key.fileobj
-                index = int(key.data)
                 for e in device.read():
                     event = evdev.categorize(e)
-                    # print(event, type(event), "\n\n")
                     if isinstance(event, evdev.events.KeyEvent) and event.keystate == 1 and event.keycode.startswith("KEY_"):
                         _,keystr = event.keycode.split("_")
-                        timestamp = event.event.timestamp()
                         onKeyPress(keystr)
                         if (keystr == "ESC"):
-                            localStop = False
+                            localStop = True
                             return
                         with _keyPressLock:
-                            _keyPressBuf.append((keystr, timestamp))
-                    else:
-                        # Forward the event
-                        forwarderDevices[index].write_event(event)
-                        forwarderDevices[index].syn()
+                            _keyPressBuf.append((keystr, time.time()))
     finally:
-        for d in devices:
+        for d in kbs:
             d.ungrab()
-        for ui in forwarderDevices:
-            ui.close()
-        _stop = True
+        _stop.set()
 
 def windowsKeyReader(onKeyPress):
     global _keyPressBuf
@@ -87,14 +88,14 @@ def windowsKeyReader(onKeyPress):
             if event.name == "esc":
                 break
             with _keyPressLock:
-                _keyPressBuf.append((event.name.upper, event.time))
-    _stop = True
+                _keyPressBuf.append((event.name.upper(), event.time))
+    _stop.set()
                 
 
 def start_listener(onKeyPress, onFinishDraw):
     producer = 0
     if platform.system() == "Linux":
-        producer = threading.Thread(target=lambda : linuxKeyReader(onKeyPress), daemon=True)
+        producer = threading.Thread(target=linuxKeyReader, args=(onKeyPress,), daemon=True)
     elif platform.system() == "Windows":
         producer = threading.Thread(target=lambda : windowsKeyReader(onKeyPress), daemon=True)
     else:
@@ -106,7 +107,7 @@ def start_listener(onKeyPress, onFinishDraw):
     producer.start()
     consumer.start()
 
-    while not _stop:
+    while not _stop.is_set():
         time.sleep(1)
 
 def ofd(x):

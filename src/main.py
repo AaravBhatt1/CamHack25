@@ -1,7 +1,8 @@
 from prediction.markov import predict_next_letter
-from charMapper import CharMapper
+from char_mapper import CharMapper
 from vectorconvert import get_image_for_ocr
 from keyboard_hooks import start_listener
+from prediction.inference import predict_letter_from_image
 import math
 
 mapper = CharMapper(rotate=False)
@@ -26,11 +27,12 @@ def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
 
 
 def finish_draw(keys: list[list[str]]):
+    global context
     print(keys)
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
     text_predictions = predict_next_letter(context)
-    img_predictions: dict[str, float] = {}
+    img_predictions = predict_letter_from_image(img)
 
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
