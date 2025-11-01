@@ -118,4 +118,38 @@ def okp(x):
 if __name__ == "__main__":
     main(okp, ofd)
 
+# keystr conventions:
+# This is what is used on Linux, currently the windows version does not map to these but it will
+# generally, the keystr is an uppercase, one word format of the key (for symbols, it is the not-shifted symbol in words)
+"""
+letters: uppercase
+numbers: as expected
+Special keys:
+ESC
+F1 - F12
+DELETE
+BACKSPACE
+ENTER
+RIGHTSHIFT
+LEFTSHIFT
+GRAVE (`)
+MINUS
+EQUAL
+LEFTBRACE
+RIGHTBRACE
+SEMICOLON
+APOSTROPHE
+BACKSLASH
+COMMA
+DOT
+SLASH
+TAB
+CAPSLOCK
+LEFTCTRL
+LEFTMETA (left windows)
+LEFTALT
+SPACE
+RIGHTALT
+COMPOSE (apps/menu)
+Arrow keys: LEFT/DOWN/UP/RIGHT
 
