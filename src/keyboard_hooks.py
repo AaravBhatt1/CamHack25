@@ -70,9 +70,15 @@ def linuxKeyReader(onKeyPress):
                         forwarderDevices[index].syn()
     finally:
         for d in devices:
-            d.ungrab()
+            try:
+                d.ungrab()
+            except:
+                pass
         for ui in forwarderDevices:
-            ui.close()
+            try:
+                ui.close()
+            except:
+                pass
         _stop = True
 
 def windowsKeyReader(onKeyPress):
