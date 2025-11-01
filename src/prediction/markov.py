@@ -9,7 +9,6 @@ _model_loaded = False
 _CORPUS_PATH = Path(__file__).parent / "corpus.txt"
 _MODEL_PATH = Path(__file__).parent / "markov_model.pkl"
 
-
 def _train_model():
     global _model_probs
 

@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-import os
+from pathlib import Path
 from .ocr_model import SimpleCNN, get_character_from_label
 
 class EMNISTPredictor:
@@ -25,10 +25,7 @@ class EMNISTPredictor:
 
         # Set default model path relative to project root
         if model_path is None:
-            project_root = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "..")
-            )
-            model_path = os.path.join(project_root, "emnist_model.pth")
+            model_path = Path(__file__).parent / "emnist_model.pth"
 
         # Load model (36 classes: 0-9, A-Z)
         self.model = SimpleCNN(num_classes=36).to(self.device)

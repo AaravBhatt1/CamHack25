@@ -6,6 +6,8 @@ def _is_adjacent(a: tuple[float, float], b: tuple[float, float]) -> bool:
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
 def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, float]]]:
+    if not data:
+        return []
     strokes = []
     current = [data[0]]
     for i in range(1, len(data)):

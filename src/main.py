@@ -32,11 +32,13 @@ def finish_draw(keys: list[list[str]]):
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
     text_predictions = predict_next_letter(context)
-    img_predictions = predict_letter_from_image(img)
+    img_predictions = {}
+    #img_predictions = predict_letter_from_image(img)
 
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
     context += prediction
+
 
 start_listener(add_key, finish_draw)
 

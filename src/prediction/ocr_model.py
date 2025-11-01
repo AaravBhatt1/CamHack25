@@ -5,7 +5,7 @@ from torchvision import transforms
 
 
 # Define the transform used for training and inference
-def get_transform():
+def get_transform() -> transforms.Compose:
     """
     Returns the transform pipeline used for both training and inference.
     Converts images to tensors and normalizes them.
@@ -68,7 +68,7 @@ class SimpleCNN(nn.Module):
         return x
 
 
-def get_character_from_label(label):
+def get_character_from_label(label: int) -> str:
     """
     Convert class label to character (uppercase letters and digits only).
 
@@ -92,7 +92,7 @@ def get_character_from_label(label):
         return "?"
 
 
-def get_label_from_character(char):
+def get_label_from_character(char: str) -> int:
     """
     Convert character to class label (uppercase letters and digits only).
 
@@ -110,7 +110,7 @@ def get_label_from_character(char):
         return None
 
 
-def count_parameters(model):
+def count_parameters(model: SimpleCNN) -> int:
     """
     Count the number of trainable parameters in a model.
 
