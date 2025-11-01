@@ -7,17 +7,8 @@ from torch.utils.data import DataLoader, Subset
 import os
 
 
-<<<<<<< HEAD:src/prediction/ocr_model.py
-# Define the transform used for training and inference
-def get_transform() -> transforms.Compose:
-    """
-    Returns the transform pipeline used for both training and inference.
-    Converts images to tensors and normalizes them.
-    """
-=======
 def get_transform():
     """Standard EMNIST transform: ToTensor + Normalize"""
->>>>>>> 5d21c41 (THE ANSWER):src/Model/model.py
     return transforms.Compose(
         [
             transforms.ToTensor(),
@@ -75,60 +66,6 @@ class EMNISTNet(nn.Module):
         return x
 
 
-<<<<<<< HEAD:src/prediction/ocr_model.py
-def get_character_from_label(label: int) -> str:
-    """
-    Convert class label to character (uppercase letters and digits only).
-
-    36 classes:
-    - 0-9: digits '0'-'9'
-    - 10-35: uppercase 'A'-'Z'
-
-    Args:
-        label: int, class index (0-35)
-
-    Returns:
-        str: corresponding character
-    """
-    if label < 10:
-        # Digits 0-9
-        return str(label)
-    elif label < 36:
-        # Uppercase A-Z
-        return chr(ord("A") + label - 10)
-    else:
-        return "?"
-
-
-def get_label_from_character(char: str) -> int:
-    """
-    Convert character to class label (uppercase letters and digits only).
-
-    Args:
-        char: str, single character
-
-    Returns:
-        int: class index (0-35), or None if character not in dataset
-    """
-    if char.isdigit():
-        return int(char)
-    elif char.isupper() and "A" <= char <= "Z":
-        return ord(char) - ord("A") + 10
-    else:
-        return None
-
-
-def count_parameters(model: SimpleCNN) -> int:
-    """
-    Count the number of trainable parameters in a model.
-
-    Args:
-        model: PyTorch model
-
-    Returns:
-        int: number of trainable parameters
-    """
-=======
 def get_character_from_label(label):
     """Convert label 0-25 to character A-Z"""
     if 0 <= label < 26:
@@ -145,7 +82,6 @@ def get_label_from_character(char):
 
 def count_parameters(model):
     """Count trainable parameters"""
->>>>>>> 5d21c41 (THE ANSWER):src/Model/model.py
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
