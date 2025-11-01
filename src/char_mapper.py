@@ -1,22 +1,21 @@
 from typing import Tuple
 from typing import Protocol, TypeVar
 
-Number = TypeVar('Number', int, float)
-
+Number = TypeVar("Number", int, float)
 
 
 class CharMapper:
-    def __init__(self, layout="English", rotate=True):
+    def __init__(self, layout="English", rotate=False):
         # Currently Does Not Do Anything
         self.layout = layout
         self.rotate = rotate
 
-    def charMap(self, char:str) -> Tuple[Number, Number] | None:
+    def charMap(self, char: str) -> Tuple[Number, Number] | None:
         if self.layout == "English":
             # Define keyboard layout coordinates (x, y) for British English MacBook layout
             keyboard_map = {
                 # Number row
-                "`": (0, 0),
+                "grave": (0, 0),
                 "1": (1, 0),
                 "2": (2, 0),
                 "3": (3, 0),
@@ -27,8 +26,8 @@ class CharMapper:
                 "8": (8, 0),
                 "9": (9, 0),
                 "0": (10, 0),
-                "-": (11, 0),
-                "=": (12, 0),
+                "minus": (11, 0),
+                "equal": (12, 0),
                 # Top row (QWERTY)
                 "q": (0.5, -1),
                 "w": (1.5, -1),
@@ -40,8 +39,8 @@ class CharMapper:
                 "i": (7.5, -1),
                 "o": (8.5, -1),
                 "p": (9.5, -1),
-                "[": (10.5, -1),
-                "]": (11.5, -1),
+                "leftbrace": (10.5, -1),
+                "rightbrace": (11.5, -1),
                 # Middle row (ASDF)
                 "a": (0.75, -2),
                 "s": (1.75, -2),
@@ -52,9 +51,9 @@ class CharMapper:
                 "j": (6.75, -2),
                 "k": (7.75, -2),
                 "l": (8.75, -2),
-                ";": (9.75, -2),
-                "'": (10.75, -2),
-                "\\": (11.75, -2),
+                "semicolon": (9.75, -2),
+                "apostrophe": (10.75, -2),
+                "102nd": (11.75, -2),
                 # Bottom row (ZXCV)
                 "z": (1.25, -3),
                 "x": (2.25, -3),
@@ -63,11 +62,11 @@ class CharMapper:
                 "b": (5.25, -3),
                 "n": (6.25, -3),
                 "m": (7.25, -3),
-                ",": (8.25, -3),
-                ".": (9.25, -3),
-                "/": (10.25, -3),
+                "comma": (8.25, -3),
+                "dot": (9.25, -3),
+                "slash": (10.25, -3),
                 # Space bar
-                " ": (5, -4),
+                "space": (5, -4),
             }
 
             # Convert to lowercase for case-insensitive lookup
@@ -87,20 +86,25 @@ class CharMapper:
             else:
                 return coords
 
-
-    def averagePoints(self, chars:list[list[str]]) -> list[Tuple[Number, Number]]:
+    def averagePoints(self, chars: list[list[str]]) -> list[Tuple[Number, Number]]:
         o = []
         for i in chars:
-            nl:list[Tuple[Number, Number]] = [x for x in map(self.charMap, i) if x is not None]
+            nl: list[Tuple[Number, Number]] = [
+                x for x in map(self.charMap, i) if x is not None
+            ]
             if nl == []:
                 continue
-            o.append((sum(map(lambda x:x[0], nl)) / len(nl), sum(map(lambda x:x[1], nl)) / len(nl)))
+            o.append(
+                (
+                    sum(map(lambda x: x[0], nl)) / len(nl),
+                    sum(map(lambda x: x[1], nl)) / len(nl),
+                )
+            )
         return o
 
-    def movePoints(self, points:list[tuple[Number, Number]]):
-        translateX = min(map(lambda x:x[0], points))
+    def movePoints(self, points: list[tuple[Number, Number]]):
+        translateX = min(map(lambda x: x[0], points))
         return list(map(lambda x: (x[0] - translateX, x[1]), points))
-
 
 
 # TEST

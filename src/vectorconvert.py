@@ -2,23 +2,24 @@ import numpy as np
 from scipy.interpolate import splprep, splev
 from scipy.ndimage import gaussian_filter
 
-def is_adjacent(a: tuple[float, float, float], b: tuple[float, float, float]) -> bool:
+def _is_adjacent(a: tuple[float, float], b: tuple[float, float]) -> bool:
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
-def get_strokes(data: list[tuple[float, float, float]]) -> list[list[tuple[float, float, float]]]:
-    sorted_data = sorted(data, key = lambda p: p[2])
+def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, float]]]:
+    if not data:
+        return []
     strokes = []
     current = [data[0]]
-    for i in range(1, len(sorted_data)):
-        if not is_adjacent(sorted_data[i], sorted_data[i-1]):
+    for i in range(1, len(data)):
+        if not _is_adjacent(data[i], data[i-1]):
             strokes.append(current)
-            current = [sorted_data[i]]
+            current = [data[i]]
         else:
-            current.append(sorted_data[i])
+            current.append(data[i])
     strokes.append(current)
     return strokes
 
-def get_curve(x: list[float], y: list[float], noise=0.01) -> tuple[np.ndarray, np.ndarray]:
+def _get_curve(x: list[float], y: list[float], noise=0.01) -> tuple[np.ndarray, np.ndarray]:
     if (len(x) < 3):
         return np.array(x), np.array(y)
     tck, _ = splprep([x, y], s=0, k=min(3, len(x)-1))
@@ -30,7 +31,7 @@ def get_curve(x: list[float], y: list[float], noise=0.01) -> tuple[np.ndarray, n
     return x_smooth, y_smooth
 
 
-def get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
+def _get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
     x -= x.mean()
     y -= y.mean()
     scale = max(x.max() - x.min(), y.max() - y.min(), 1e-5)
@@ -48,14 +49,14 @@ def get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
     bw_grid = grid
     return bw_grid
 
-def get_image_for_ocr(data):
+def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
     x = np.array([])
     y = np.array([])
 
-    for stroke in get_strokes(data):
+    for stroke in _get_strokes(data):
         x_stroke = [p[0] for p in stroke]
         y_stroke = [p[1] for p in stroke]
-        x_fine, y_fine = get_curve(x_stroke, y_stroke)
+        x_fine, y_fine = _get_curve(x_stroke, y_stroke)
         x = np.concatenate([x, x_fine])
         y = np.concatenate([y, y_fine])
-    return get_bins(x, y)
+    return _get_bins(x, y)
