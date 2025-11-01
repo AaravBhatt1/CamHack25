@@ -15,6 +15,7 @@ def get_transform():
             transforms.Normalize(
                 (0.1307,), (0.3081,)
             ),  # MNIST/EMNIST standard normalization
+            transforms.Lambda(lambda x: x.transpose(-2, -1))
         ]
     )
 
