@@ -1,4 +1,5 @@
 import evdev
+import keyboard
 import json
 import selectors
 import threading
@@ -34,7 +35,7 @@ def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
 
 
 
-def keyReader():
+def linuxKeyReader(onKeyPress):
     global _keyPressBuf
     global _keyPressLock
     global _stop
@@ -57,6 +58,7 @@ def keyReader():
                     if isinstance(event, evdev.events.KeyEvent) and event.keystate == 1 and event.keycode.startswith("KEY_"):
                         _,keystr = event.keycode.split("_")
                         timestamp = event.event.timestamp()
+                        onKeyPress(keystr)
                         if (keystr == "ESC"):
                             localStop = False
                             return
@@ -72,8 +74,10 @@ def keyReader():
         for ui in forwarderDevices:
             ui.close()
         _stop = True
-def main(onFinishDraw):
-    producer = threading.Thread(target=keyReader, daemon=True)
+
+    
+def main(onKeyPress, onFinishDraw):
+    producer = threading.Thread(target=lambda : linuxKeyReader(onKeyPress), daemon=True)
     consumer = threading.Thread(target=lambda : dispatcher(ofd), daemon=True)
 
     producer.start()
@@ -84,7 +88,9 @@ def main(onFinishDraw):
 
 def ofd(x):
     print(x)
+def okp(x):
+    print(f"RECIEVED {x}")
 
 if __name__ == "__main__":
-    main(ofd)
+    main(okp, ofd)
 
