@@ -11,7 +11,7 @@ _keyPressLock= threading.Lock()
 
 _stop = threading.Event()
 
-def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
+def dispatcher(onFinishDraw, sameTimeDelay = 0.00, timeBetweenLetters = 0.8):
     global _keyPressBuf
     global _keyPressLock
     while not _stop.is_set():

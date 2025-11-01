@@ -4,10 +4,11 @@ from vectorconvert import get_image_for_ocr
 from keyboard_hooks import start_listener
 from prediction.inference import predict_letter_from_image
 import math
+import matplotlib
 
 mapper = CharMapper(rotate=False)
 context = ""
-ocr_bias = 0.7
+ocr_bias = 0.95
 
 def add_key(key: str):
     print(f"key {key}")
@@ -31,14 +32,20 @@ def finish_draw(keys: list[list[str]]):
     print(keys)
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
-    text_predictions = predict_next_letter(context)
-    img_predictions = {}
-    #img_predictions = predict_letter_from_image(img)
+    save_plot(img)
+    text_predictions = {}# predict_next_letter(context)
+    img_predictions = predict_letter_from_image(img)
+    print(img_predictions)
 
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
     context += prediction
 
+def save_plot(img):
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    plt.imshow(img, cmap="gray")
+    plt.savefig('image.png')
 
 start_listener(add_key, finish_draw)
 

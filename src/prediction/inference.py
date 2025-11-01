@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
-from ocr_model import EMNISTNet, get_character_from_label, get_transform
+from .ocr_model import EMNISTNet, get_character_from_label, get_transform
 
 
 class EMNISTPredictor:
