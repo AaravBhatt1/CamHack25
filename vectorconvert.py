@@ -1,19 +1,7 @@
 import numpy as np
 from scipy.interpolate import splprep, splev
+from scipy.ndimage import gaussian_filter
 import matplotlib.pyplot as plt
-
-pixels = [
-    (4, 2, 0),
-    (5, 1, 1),
-    (6, 1, 2),
-    (6, 2, 3),
-    (5, 3, 4),
-    (4, 3, 5),
-    (4, 2, 6),
-    (6, 2, 7),
-    (6, 3, 8),
-    (7, 3, 9)
-]
 
 def is_adjacent(a, b):
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
@@ -30,31 +18,48 @@ def get_strokes(data):
         else:
             current.append(sorted_data[i])
     strokes.append(current)
+    print(strokes)
     return strokes
 
-def get_curve(x, y):
+def get_curve(x, y, noise=0.01):
+    if (len(x) < 3):
+        return x, y
     tck, u = splprep([x, y], s=0, k=min(3, len(x)-1))
     u_fine = np.linspace(0, 1, 200)
-    return splev(u_fine, tck)
+    x_smooth, y_smooth = splev(u_fine, tck)
+    x_smooth += np.random.normal(0, noise, size=x_smooth.shape)
+    y_smooth += np.random.normal(0, noise, size=y_smooth.shape)
+    return x_smooth, y_smooth
 
-def get_curve2(x, y, points=200):
+
+def get_bins(x, y, noise=0.30):
     x = np.array(x)
     y = np.array(y)
+    x -= x.mean()
+    y -= y.mean()
+    scale = max(x.max() - x.min(), y.max() - y.min(), 1e-5)
+    x /= scale
+    y /= scale
+    x = (x + 0.5) * 27
+    y = (y + 0.5) * 27
 
-    if len(x) < 4:
-        return x, y
-    t = np.linspace(0, 1, len(x))
-    t_fine = np.linspace(0, 1, points)
-    
+    grid, _, _ = np.histogram2d(y, x, bins=28, range=[[0, 27], [0, 27]])
+    grid = gaussian_filter(grid, sigma=noise)
 
-plt.figure(figsize=(10,10))
+    if grid.max() > 0:
+        grid /= grid.max()
+    grid = grid ** 0.025
+    bw_grid = grid
+    return bw_grid
 
-for stroke in get_strokes(pixels):
-    x = [p[0] for p in stroke]
-    y = [p[1] for p in stroke]
-    x_fine, y_fine = get_curve(x, y)
-    plt.plot(x_fine, y_fine, '-')
-    plt.scatter(x, y, color='red')
+def get_image_for_ocr(data):
+    x = np.array([])
+    y = np.array([])
 
-plt.gca().invert_yaxis()
-plt.show()
+    for stroke in get_strokes(data):
+        x_stroke = [p[0] for p in stroke]
+        y_stroke = [p[1] for p in stroke]
+        x_fine, y_fine = get_curve(x_stroke, y_stroke)
+        x = np.concatenate([x, x_fine])
+        y = np.concatenate([y, y_fine])
+    return get_bins(x, y)
