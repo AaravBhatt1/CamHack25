@@ -1,13 +1,11 @@
 import numpy as np
 from scipy.interpolate import splprep, splev
 from scipy.ndimage import gaussian_filter
-import matplotlib.pyplot as plt
 
-def is_adjacent(a, b):
+def is_adjacent(a: tuple[float, float, float], b: tuple[float, float, float]) -> bool:
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
-
-def get_strokes(data):
+def get_strokes(data: list[tuple[float, float, float]]) -> list[list[tuple[float, float, float]]]:
     sorted_data = sorted(data, key = lambda p: p[2])
     strokes = []
     current = [data[0]]
@@ -18,23 +16,21 @@ def get_strokes(data):
         else:
             current.append(sorted_data[i])
     strokes.append(current)
-    print(strokes)
     return strokes
 
-def get_curve(x, y, noise=0.01):
+def get_curve(x: list[float], y: list[float], noise=0.01) -> tuple[np.ndarray, np.ndarray]:
     if (len(x) < 3):
-        return x, y
-    tck, u = splprep([x, y], s=0, k=min(3, len(x)-1))
+        return np.array(x), np.array(y)
+    tck, _ = splprep([x, y], s=0, k=min(3, len(x)-1))
     u_fine = np.linspace(0, 1, 200)
+
     x_smooth, y_smooth = splev(u_fine, tck)
     x_smooth += np.random.normal(0, noise, size=x_smooth.shape)
     y_smooth += np.random.normal(0, noise, size=y_smooth.shape)
     return x_smooth, y_smooth
 
 
-def get_bins(x, y, noise=0.30):
-    x = np.array(x)
-    y = np.array(y)
+def get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
     x -= x.mean()
     y -= y.mean()
     scale = max(x.max() - x.min(), y.max() - y.min(), 1e-5)
@@ -43,7 +39,7 @@ def get_bins(x, y, noise=0.30):
     x = (x + 0.5) * 27
     y = (y + 0.5) * 27
 
-    grid, _, _ = np.histogram2d(y, x, bins=28, range=[[0, 27], [0, 27]])
+    grid, *_ = np.histogram2d(y, x, bins=28, range=[[0, 27], [0, 27]])
     grid = gaussian_filter(grid, sigma=noise)
 
     if grid.max() > 0:

@@ -1,2 +1,2 @@
-prediction/corpus.txt
+src/prediction/corpus.txt
 *.venv
