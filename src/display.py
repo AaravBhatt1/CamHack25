@@ -5,54 +5,104 @@ from pynput import keyboard
 # Define a comprehensive coordinate map for keys based on a standard QWERTY layout.
 # Key: (X_position, Y_position) - scaled for a typical canvas size.
 KEY_MAP = {
+    # Previous keyboard mapping
+    # # Number row
+    # '`': (50, 50), '1': (100, 50), '2': (150, 50), '3': (200, 50), '4': (250, 50),
+    # '5': (300, 50), '6': (350, 50), '7': (400, 50), '8': (450, 50), '9': (500, 50),
+    # '0': (550, 50), '-': (600, 50), '=': (650, 50),
+    # keyboard.Key.backspace: (725, 50),
+    
+    # # Top letter row
+    # keyboard.Key.tab: (75, 100),
+    # 'q': (125, 100), 'w': (175, 100), 'e': (225, 100), 'r': (275, 100),
+    # 't': (325, 100), 'y': (375, 100), 'u': (425, 100), 'i': (475, 100),
+    # 'o': (525, 100), 'p': (575, 100), '[': (625, 100), ']': (675, 100),
+    
+    # # Home row
+    # keyboard.Key.caps_lock: (90, 150),
+    # 'a': (150, 150), 's': (200, 150), 'd': (250, 150), 'f': (300, 150),
+    # 'g': (350, 150), 'h': (400, 150), 'j': (450, 150), 'k': (500, 150),
+    # 'l': (550, 150), ';': (600, 150), "'": (650, 150),
+    # keyboard.Key.enter: (725, 150),
+    
+    # # Bottom row
+    # keyboard.Key.shift: (100, 200), '\\': (135, 200),
+    # 'z': (175, 200), 'x': (225, 200), 'c': (275, 200), 'v': (325, 200),
+    # 'b': (375, 200), 'n': (425, 200), 'm': (475, 200), ',': (525, 200),
+    # '.': (575, 200), '/': (625, 200),
+    # keyboard.Key.shift_r: (700, 200),
+
+    # New keyboard mapping using keyboard_hooks.py conventions
     # Number row
-    '`': (50, 50), '1': (100, 50), '2': (150, 50), '3': (200, 50), '4': (250, 50),
+    'GRAVE': (50, 50), '1': (100, 50), '2': (150, 50), '3': (200, 50), '4': (250, 50),
     '5': (300, 50), '6': (350, 50), '7': (400, 50), '8': (450, 50), '9': (500, 50),
-    '0': (550, 50), '-': (600, 50), '=': (650, 50),
-    keyboard.Key.backspace: (725, 50),
+    '0': (550, 50), 'MINUS': (600, 50), 'EQUAL': (650, 50),
+    'BACKSPACE': (725, 50),
     
     # Top letter row
-    keyboard.Key.tab: (75, 100),
-    'q': (125, 100), 'w': (175, 100), 'e': (225, 100), 'r': (275, 100),
-    't': (325, 100), 'y': (375, 100), 'u': (425, 100), 'i': (475, 100),
-    'o': (525, 100), 'p': (575, 100), '[': (625, 100), ']': (675, 100),
+    'TAB': (75, 100),
+    'Q': (125, 100), 'W': (175, 100), 'E': (225, 100), 'R': (275, 100),
+    'T': (325, 100), 'Y': (375, 100), 'U': (425, 100), 'I': (475, 100),
+    'O': (525, 100), 'P': (575, 100), 'LEFTBRACE': (625, 100), 'RIGHTBRACE': (675, 100),
     
     # Home row
-    keyboard.Key.caps_lock: (90, 150),
-    'a': (150, 150), 's': (200, 150), 'd': (250, 150), 'f': (300, 150),
-    'g': (350, 150), 'h': (400, 150), 'j': (450, 150), 'k': (500, 150),
-    'l': (550, 150), ';': (600, 150), "'": (650, 150),
-    keyboard.Key.enter: (725, 150),
+    'CAPSLOCK': (90, 150),
+    'A': (150, 150), 'S': (200, 150), 'D': (250, 150), 'F': (300, 150),
+    'G': (350, 150), 'H': (400, 150), 'J': (450, 150), 'K': (500, 150),
+    'L': (550, 150), 'SEMICOLON': (600, 150), 'APOSTROPHE': (650, 150),
+    'ENTER': (725, 150),
     
     # Bottom row
-    keyboard.Key.shift: (100, 200), '\\': (135, 200),
-    'z': (175, 200), 'x': (225, 200), 'c': (275, 200), 'v': (325, 200),
-    'b': (375, 200), 'n': (425, 200), 'm': (475, 200), ',': (525, 200),
-    '.': (575, 200), '/': (625, 200),
-    keyboard.Key.shift_r: (700, 200),
-    
-    # Bottom row - modifiers and space
-    keyboard.Key.ctrl_l: (75, 250),
-    keyboard.Key.cmd: (125, 250),
-    keyboard.Key.alt_l: (175, 250),
-    keyboard.Key.space: (400, 250),  # Centered, wide key
-    keyboard.Key.alt_gr: (625, 250),
-    keyboard.Key.menu: (675, 250),
-    keyboard.Key.ctrl_r: (725, 250),
+    'LEFTSHIFT': (100, 200), 'BACKSLASH': (135, 200),
+    'Z': (175, 200), 'X': (225, 200), 'C': (275, 200), 'V': (325, 200),
+    'B': (375, 200), 'N': (425, 200), 'M': (475, 200), 'COMMA': (525, 200),
+    'DOT': (575, 200), 'SLASH': (625, 200),
+    'RIGHTSHIFT': (700, 200),
+
+    # Bottom row - modifiers
+    'LEFTCTRL': (75, 250),
+    'LEFTMETA': (125, 250),
+    'LEFTALT': (175, 250),
+    'SPACE': (400, 250),  # Centered, wide key
+    'RIGHTALT': (625, 250),
+    'COMPOSE': (725, 250),  # Menu/Apps key
     
     # Arrow keys
-    keyboard.Key.left: (625, 300),
-    keyboard.Key.down: (675, 300),
-    keyboard.Key.right: (725, 300),
-    keyboard.Key.up: (675, 250),
+    'LEFT': (625, 300),
+    'DOWN': (675, 300),
+    'RIGHT': (725, 300),
+    'UP': (675, 250),
     
     # Additional keys
-    keyboard.Key.esc: (50, 25),
-    keyboard.Key.delete: (725, 75),
-    keyboard.Key.home: (625, 75),
-    keyboard.Key.end: (675, 75),
-    keyboard.Key.page_up: (625, 25),
-    keyboard.Key.page_down: (675, 25)
+    'ESC': (50, 25),
+    'DELETE': (725, 75),
+    'HOME': (625, 75),
+    'END': (675, 75),
+    'PAGEUP': (625, 25),
+    'PAGEDOWN': (675, 25)
+    
+    # Bottom row - modifiers and space
+    # keyboard.Key.ctrl_l: (75, 250),
+    # keyboard.Key.cmd: (125, 250),
+    # keyboard.Key.alt_l: (175, 250),
+    # keyboard.Key.space: (400, 250),  # Centered, wide key
+    # keyboard.Key.alt_gr: (625, 250),
+    # keyboard.Key.menu: (675, 250),
+    # keyboard.Key.ctrl_r: (725, 250),
+    
+    # # Arrow keys
+    # keyboard.Key.left: (625, 300),
+    # keyboard.Key.down: (675, 300),
+    # keyboard.Key.right: (725, 300),
+    # keyboard.Key.up: (675, 250),
+    
+    # # Additional keys
+    # keyboard.Key.esc: (50, 25),
+    # keyboard.Key.delete: (725, 75),
+    # keyboard.Key.home: (625, 75),
+    # keyboard.Key.end: (675, 75),
+    # keyboard.Key.page_up: (625, 25),
+    # keyboard.Key.page_down: (675, 25)
 }
 
 # --- Global State ---
@@ -65,30 +115,43 @@ root.title("Real-Time Keyboard Visualizer")
 canvas = tk.Canvas(root, width=1000, height=400, bg='black')
 canvas.pack()
 
-def on_press(key):
-    try:
-        # Get the character or key name
-        key_char = key.char if hasattr(key, 'char') else key 
-    except AttributeError:
-        # For special keys like Shift, Ctrl, etc., just use the key object
-        key_char = key
+# def on_press(key):
+#     try:
+#         # Get the character or key name
+#         key_char = key.char if hasattr(key, 'char') else key 
+#     except AttributeError:
+#         # For special keys like Shift, Ctrl, etc., just use the key object
+#         key_char = key
 
-    if key_char in KEY_MAP:
+#     if key_char in KEY_MAP:
+#         # 1. Get position from map
+#         pos = KEY_MAP[key_char]
+        
+#         # 2. Update key history
+#         key_history.append((key_char, pos))
+#         if len(key_history) > MAX_HISTORY:
+#             key_history.pop(0)
+            
+#         # 3. Request a screen update
+#         # Tkinter will call the update_display function shortly
+#         root.after(10, update_display)
+
+#     # Note: Returning False stops the listener. We want it to run continuously.
+#     # print(f'{key_char} pressed')
+
+def on_press(key):
+    if key in KEY_MAP:
         # 1. Get position from map
-        pos = KEY_MAP[key_char]
+        pos = KEY_MAP[key]
         
         # 2. Update key history
-        key_history.append((key_char, pos))
+        key_history.append((key, pos))
         if len(key_history) > MAX_HISTORY:
             key_history.pop(0)
             
         # 3. Request a screen update
         # Tkinter will call the update_display function shortly
         root.after(10, update_display)
-
-    # Note: Returning False stops the listener. We want it to run continuously.
-    # print(f'{key_char} pressed')
-
 
 def update_display():
     """Clears the canvas and draws the current key history."""
