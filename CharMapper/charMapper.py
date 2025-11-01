@@ -1,10 +1,17 @@
+from typing import Tuple
+from typing import Protocol, TypeVar
+
+Number = TypeVar('Number', int, float)
+
+
+
 class CharMapper:
     def __init__(self, layout="English", rotate=True):
         # Currently Does Not Do Anything
         self.layout = layout
         self.rotate = rotate
 
-    def charMap(self, char):
+    def charMap(self, char:str) -> Tuple[Number, Number] | None:
         if self.layout == "English":
             # Define keyboard layout coordinates (x, y) for British English MacBook layout
             keyboard_map = {
@@ -79,6 +86,19 @@ class CharMapper:
                 return rotated_coords
             else:
                 return coords
+
+
+    def averagePoint(self, c1:str, c2:str) -> Tuple[Number, Number] | None:
+        c1Point = self.charMap(c1)
+        if c1Point is None:
+            return None
+        c2Point = self.charMap(c2)
+        if c2Point is None:
+            return None
+        
+        return (c1Point[0] + c2Point[0])/2, (c1Point[1] + c2Point[1])/2
+
+
 
 
 # TEST
