@@ -88,16 +88,18 @@ class CharMapper:
                 return coords
 
 
-    def averagePoint(self, c1:str, c2:str) -> Tuple[Number, Number] | None:
-        c1Point = self.charMap(c1)
-        if c1Point is None:
-            return None
-        c2Point = self.charMap(c2)
-        if c2Point is None:
-            return None
-        
-        return (c1Point[0] + c2Point[0])/2, (c1Point[1] + c2Point[1])/2
+    def averagePoints(self, chars:list[list[str]]) -> list[Tuple[Number, Number]]:
+        o = []
+        for i in chars:
+            nl:list[Tuple[Number, Number]] = [x for x in map(self.charMap, i) if x is not None]
+            if nl == []:
+                continue
+            o.append((sum(map(lambda x:x[0], nl)) / len(nl), sum(map(lambda x:x[1], nl)) / len(nl)))
+        return o
 
+    def movePoints(self, points:list[tuple[Number, Number]]):
+        translateX = min(map(lambda x:x[0], points))
+        return list(map(lambda x: (x[0] - translateX, x[1]), points))
 
 
 
