@@ -125,31 +125,31 @@ if __name__ == "__main__":
 letters: uppercase
 numbers: as expected
 Special keys:
-ESC
-F1 - F12
-DELETE
-BACKSPACE
-ENTER
-RIGHTSHIFT
-LEFTSHIFT
-GRAVE (`)
-MINUS
-EQUAL
-LEFTBRACE
-RIGHTBRACE
-SEMICOLON
-APOSTROPHE
-BACKSLASH
-COMMA
-DOT
-SLASH
-TAB
-CAPSLOCK
-LEFTCTRL
-LEFTMETA (left windows)
-LEFTALT
-SPACE
-RIGHTALT
+ESC done
+F1 - F12 done
+DELETE done
+BACKSPACE done
+ENTER done
+RIGHTSHIFT done
+LEFTSHIFT done 
+GRAVE (`) done
+MINUS done 
+EQUAL done
+LEFTBRACE done
+RIGHTBRACE done
+SEMICOLON  done
+APOSTROPHE done
+BACKSLASH done
+COMMA done 
+DOT done
+SLASH done 
+TAB done
+CAPSLOCK done
+LEFTCTRL done
+LEFTMETA (left windows) done
+LEFTALT done
+SPACE done
+RIGHTALT done 
 COMPOSE (apps/menu)
-Arrow keys: LEFT/DOWN/UP/RIGHT
+Arrow keys: LEFT/DOWN/UP/RIGHT done
 """
