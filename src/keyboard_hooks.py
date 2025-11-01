@@ -16,20 +16,20 @@ def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
     global _keyPressLock
     while not _stop:
         time.sleep(0.1)
-        if (len(_keyPressBuf) == 0 or time.time() - _keyPressBuf[-1][1] < timeBetweenLetters):
+        if (len(_keyPressBuf) == 0 or time.time() - _keyPressBuf[-1][2] < timeBetweenLetters):
             continue
         toDispatch = []
         with _keyPressLock:
             sameTimeAccumulate = []
-            for keystr, timestamp in _keyPressBuf:
+            for keystr, device, timestamp in _keyPressBuf:
                 if (len(sameTimeAccumulate) == 0 or timestamp - sameTimeAccumulate[-1][1] < sameTimeDelay):
-                    sameTimeAccumulate.append((keystr, timestamp))
+                    sameTimeAccumulate.append((keystr, device, timestamp))
                 else:
-                    toDispatch.append([k for k,_ in sameTimeAccumulate])
+                    toDispatch.append([(k,d) for k,d,_ in sameTimeAccumulate])
                     sameTimeAccumulate = []
-                    toDispatch.append([keystr])
+                    toDispatch.append([(keystr, device)])
             if len(sameTimeAccumulate) > 0:
-                toDispatch.append([k for k,_ in sameTimeAccumulate])
+                toDispatch.append([(k,d) for k,d,_ in sameTimeAccumulate])
         _keyPressBuf = []
         onFinishDraw(toDispatch)
 
@@ -63,7 +63,7 @@ def linuxKeyReader(onKeyPress):
                             localStop = False
                             return
                         with _keyPressLock:
-                            _keyPressBuf.append((keystr, timestamp))
+                            _keyPressBuf.append((keystr, device.fd, timestamp))
                     else:
                         # Forward the event
                         forwarderDevices[index].write_event(event)
@@ -88,7 +88,7 @@ def windowsKeyReader(onKeyPress):
             if event.name == "esc":
                 break
             with _keyPressLock:
-                _keyPressBuf.append((event.name.upper, event.time))
+                _keyPressBuf.append((event.name.upper,0, event.time))
     _stop = True
                 
 
