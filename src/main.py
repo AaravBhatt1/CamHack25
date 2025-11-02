@@ -25,7 +25,6 @@ keyQueueMgr.connect()
 
 
 def add_key(key: str):
-    print(f"key {key}")
     q = keyQueueMgr.get_queue()
     q.put(key)
 
@@ -50,21 +49,17 @@ def finish_draw(keys: list[list[str]]):
     global context
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
-    save_plot(img)
     text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
     prediction = get_prediction(text_predictions, img_predictions)
     subprocess.run(["ydotool", "type", prediction])
+    q = keyQueueMgr.get_queue()
+    q.put("STOP")
     context += prediction
     img = np.fliplr(img)
     img = np.rot90(img, k=1)
 
-def save_plot(img):
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
 
-    plt.imshow(img)
-    plt.savefig("image.png")
 
 
 if __name__ == "__main__":
