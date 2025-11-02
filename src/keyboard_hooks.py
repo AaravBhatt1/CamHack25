@@ -17,8 +17,8 @@ class KeyHook:
         self.lock = threading.Lock()
 
     def add_key(self, key):
-        timestamp = time.time()
         with self.lock:
+            timestamp = time.time()
             self.buffer.append((key, timestamp))
 
     def _dispatcher(self):
