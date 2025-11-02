@@ -57,7 +57,7 @@ KEY_MAP = {
 
 # --- Global State ---
 key_history = []
-MAX_HISTORY = 50 # Only display the last 50 keypresses
+MAX_HISTORY = 200 # Only display the last 25 keypresses
 
 class QueueManager(BaseManager): pass
 
@@ -67,7 +67,7 @@ def on_press(key):
         pos = KEY_MAP[key]        
         
         # Update key history
-        key_history.append((key, pos))
+        key_history.append((key, pos, 0))
         if len(key_history) > MAX_HISTORY:
             key_history.pop(0)
             
@@ -86,10 +86,10 @@ def update_display():
     #     canvas.create_oval(x-15, y-15, x+15, y+15, outline='#333333')
     
     # Draw keypress history in reverse order (most recent is brightest/largest)
-    for i, (key_char, (x, y)) in enumerate(reversed(key_history)):
+    for key_char, (x, y), frame in key_history:
         # Calculate size and brightness based on recency
-        alpha = (i + 1) / MAX_HISTORY # Closer to 1 for recent keys
-        size = 10 + (MAX_HISTORY - i) * 1.5 # Larger for recent keys
+        alpha =  1 - (((frame + 1) * 0.5) / MAX_HISTORY) # Closer to 1 for recent keys
+        size = 20
         color_hex = f'#{int(255 * alpha):02x}{int(100 * alpha):02x}{0:02x}' # Fade from Red
 
         # Draw the keypress circle
@@ -102,6 +102,7 @@ def update_display():
     root.update_idletasks() # Force redraw
 
 def clearDisplay():
+    global key_history
     key_history = []
     root.after(10, update_display)
 
@@ -110,6 +111,10 @@ def check_queue(root, q, delay = 10):
     #print("CHECKING QQQ")
     #q = m.get_queue()
     if running:
+        global key_history
+        key_history = [(key, pos, i+1) for (key, pos, i) in key_history if i < MAX_HISTORY]
+
+        update_display()
         try:
             key = str(q.get_nowait()).upper()
             print("K", key)
@@ -120,6 +125,7 @@ def check_queue(root, q, delay = 10):
         except Empty:
             print("EEEEMPT")
         finally:
+
             root.after(delay, check_queue, root, q)  # Schedule next check
 
 # To be called when the Tkinter window closes
