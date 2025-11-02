@@ -65,6 +65,7 @@ def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
         for i in range(1, len(pts)):
             cv2.line(img, tuple(pts[i-1]), tuple(pts[i]), color=1.0, thickness=1, lineType=cv2.LINE_AA)
     img = cv2.GaussianBlur(img, (3, 3,), 0.5)
+    img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
     if img.max() > 0:
         img /= img.max()
