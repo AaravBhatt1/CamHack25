@@ -78,8 +78,8 @@ def update_display():
     """Clears the canvas and draws the current key history."""
     canvas.delete("all") # Clear previous drawing
     
-    title_text = "LAST 10 KEYPRESSES (QWERTY LAYOUT)"
-    canvas.create_text(300, 20, text=title_text, fill='white', font=('Arial', 14))
+    # title_text = "LAST 10 KEYPRESSES (QWERTY LAYOUT)"
+    # canvas.create_text(300, 20, text=title_text, fill='white', font=('Arial', 14))
 
     # Draw a dim background circle for every key
     # for key_char, (x, y) in KEY_MAP.items():    
@@ -156,5 +156,3 @@ if __name__ == "__main__":
 
     print("Window closed, shutting down...")
 
-# Stop the listener thread when the Tkinter window is closed
-# listener.stop()
