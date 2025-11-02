@@ -104,7 +104,7 @@ class CharMapper:
             }
 
             # Convert to lowercase for case-insensitive lookup
-            char = char.lower()
+            char = char.upper()
 
             # Get coordinates if character exists in map
             coords = keyboard_map[char]
