@@ -2,6 +2,7 @@ import tkinter as tk
 import time
 from queue import Empty
 from multiprocessing.managers import BaseManager
+import sys
 
 # Coordinate map for keys
 # Key: (X_position, Y_position).
@@ -55,6 +56,8 @@ KEY_MAP = {
     'PAGEDOWN': (675, 25)
 }
 
+flip = False
+
 # --- Global State ---
 key_history = []
 MAX_HISTORY = 200 # Only display the last 25 keypresses
@@ -64,7 +67,11 @@ class QueueManager(BaseManager): pass
 def on_press(key):
     if key in KEY_MAP:
         # Get position from map
-        pos = KEY_MAP[key]        
+        x, y = KEY_MAP[key]
+        if flip:
+            pos = (400 - y, x)  
+        else:
+            pos = (x, y) 
         
         # Update key history
         key_history.append((key, pos, 0))
@@ -135,13 +142,21 @@ def on_closing():
     root.destroy()
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        arg = sys.argv[1]
+        flip = arg == "flip"
+
     # Global flag to control the queue polling loop
     running = True  
     
     # Tkinter Setup
     root = tk.Tk()
     root.title("Real-Time Keyboard Visualizer")
-    canvas = tk.Canvas(root, width=1000, height=400, bg='black')
+    w = 1000
+    h = 500
+    if flip: 
+        w,h = h,w
+    canvas = tk.Canvas(root, width=w, height=h, bg='black')
     canvas.pack()
     
     # Set up window close handler
@@ -161,4 +176,3 @@ if __name__ == "__main__":
     root.mainloop()
 
     print("Window closed, shutting down...")
-

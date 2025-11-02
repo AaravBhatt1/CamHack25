@@ -17,18 +17,20 @@ cleanup() {
 trap cleanup EXIT
 
 
-
+echo "Starting ydotoold..."
 sudo nohup "$YDTOOLD_BIN" > "$LOGDIR/ydotoold.out" 2> "$LOGDIR/ydotoold.err" < /dev/null &
 YDTOOLD_PID=$!
+
+echo "Starting server..."
 
 python3 "$SERVER" > "$LOGDIR/server.log" 2>&1 &
 SERVER_PID=$!
 
-YDTOOL_SOCKET=/run/ydotool/ydotool.sock
-while [ ! -S "$YDTOOL_SOCKET" ]; do
-    sleep 0.1
-done
+sleep 2
 
+echo "Ydotoold ready, starting display..."
+
+export DISPLAY=:0
 if [ "${#ARGS[@]}" -eq 0 ]; then
     python3 "$DISPLAY" > "$LOGDIR/display.log" 2>&1 &
     DISPLAY_PID=$!
@@ -39,6 +41,7 @@ fi
 
 sleep 1
 
+echo "Starting main..."
 if [ "${#ARGS[@]}" -eq 0 ]; then
     sudo python3 "$LAUNCH" > "$LOGDIR/main.log" 2>&1 &
     LAUNCH_PID=$!
