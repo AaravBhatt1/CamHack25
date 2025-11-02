@@ -12,7 +12,7 @@ class CharMapper:
 
     def charMap(self, char: str) -> Tuple[Number, Number] | None:
         if self.layout == "English":
-            # Define keyboard layout coordinates (x, y) for British English MacBook layout
+            # Define keyboard layout coordinates (x, y) for British English
             keyboard_map = {
 
                 #F keys
@@ -104,7 +104,7 @@ class CharMapper:
             }
 
             # Convert to lowercase for case-insensitive lookup
-            char = char.lower()
+            char = char.upper()
 
             # Get coordinates if character exists in map
             coords = keyboard_map[char]

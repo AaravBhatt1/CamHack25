@@ -1,7 +1,7 @@
 from prediction.markov import predict_next_letter
 from char_mapper import CharMapper
 from vectorconvert import get_image_for_ocr
-from keyboard_hooks import start_listener
+from keyboard_hooks import KeyHook
 from prediction.inference import predict_letter_from_image
 import math
 import matplotlib
@@ -13,14 +13,14 @@ ocr_bias = 0.95
 def add_key(key: str):
     print(f"key {key}")
 
-def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
+def get_prediction(text_preds: dict[str, float], img_preds: dict[str, float], weight=ocr_bias) -> str:
     best = ""
     log_p_best = -math.inf
 
     for char in set(text_preds) | set(img_preds):
         p_text = max(text_preds.get(char, 1e-12), 1e-12)
         p_img  = max(img_preds.get(char, 1e-12), 1e-12)
-        log_combined = ocr_bias * math.log(p_img) + (1 - ocr_bias) * math.log(p_text)
+        log_combined = weight * math.log(p_img) + (1 - weight) * math.log(p_text)
         if log_combined > log_p_best:
             log_p_best = log_combined
             best = char
@@ -29,11 +29,10 @@ def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
 
 def finish_draw(keys: list[list[str]]):
     global context
-    print(keys)
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
     save_plot(img)
-    text_predictions = {}# predict_next_letter(context)
+    text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
     print(img_predictions)
 
@@ -44,10 +43,9 @@ def finish_draw(keys: list[list[str]]):
 def save_plot(img):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    plt.imshow(img, cmap="gray")
+    plt.imshow(img)
     plt.savefig('image.png')
 
-start_listener(add_key, finish_draw)
-
-
-
+if __name__ == "__main__":
+    hook = KeyHook(add_key, finish_draw)
+    hook.start()
