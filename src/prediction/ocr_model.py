@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Subset
+from PIL import Image
 import os
 
 
@@ -11,6 +12,8 @@ def get_transform():
     """Standard EMNIST transform: ToTensor + Normalize"""
     return transforms.Compose(
         [
+            transforms.Lambda(lambda x: x.rotate(-90, expand=True)),
+            transforms.Lambda(lambda x: x.transpose(Image.FLIP_LEFT_RIGHT)),
             transforms.ToTensor(),
             transforms.Normalize(
                 (0.1307,), (0.3081,)
@@ -25,7 +28,7 @@ class EMNISTNet(nn.Module):
     Proven to achieve 85-90% accuracy on EMNIST Letters.
     """
 
-    def __init__(self, num_classes=26):
+    def __init__(self, num_classes=36):
         super(EMNISTNet, self).__init__()
 
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
@@ -33,12 +36,17 @@ class EMNISTNet(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
 
         self.pool = nn.MaxPool2d(2, 2)
-        self.dropout1 = nn.Dropout2d(0.25)
-        self.dropout2 = nn.Dropout2d(0.5)
+        self.dropout1 = nn.Dropout(0.25)
+        self.dropout2 = nn.Dropout(0.5)
 
-        # After 3 conv+pool layers: 28 -> 14 -> 7 -> 3
-        # But we only do 2 pools, so: 28 -> 14 -> 7
-        self.fc1 = nn.Linear(128 * 7 * 7, 256)
+        with torch.no_grad():
+            dummy = torch.zeros(1, 1, 28, 28)
+            dummy = self.pool(F.relu(self.conv1(dummy)))
+            dummy = self.pool(F.relu(self.conv2(dummy)))
+            dummy = F.relu(self.conv3(dummy))
+            num_features = dummy.numel()
+
+        self.fc1 = nn.Linear(num_features, 256)
         self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):
@@ -56,7 +64,7 @@ class EMNISTNet(nn.Module):
         x = self.dropout1(x)
 
         # Flatten
-        x = x.view(-1, 128 * 7 * 7)
+        x = torch.flatten(x, 1)
 
         # FC layers
         x = F.relu(self.fc1(x))
@@ -88,8 +96,10 @@ def count_parameters(model):
 if __name__ == "__main__":
     # Configuration
     BATCH_SIZE = 128
-    EPOCHS = 3
+    EPOCHS = 5
     LEARNING_RATE = 0.001
+    NUM_WORKERS = 0
+    NUM_CLASSES = 26
 
     # Device setup
     if torch.backends.mps.is_available():
@@ -122,8 +132,13 @@ if __name__ == "__main__":
     # ByClass: 0-9 (digits), 10-35 (uppercase A-Z), 36-61 (lowercase a-z)
     print("Filtering for uppercase letters (A-Z)...")
 
-    train_indices = [i for i, (_, label) in enumerate(full_train) if 10 <= label < 36]
-    test_indices = [i for i, (_, label) in enumerate(full_test) if 10 <= label < 36]
+    train_targets = full_train.targets
+    train_mask = (train_targets >= 10) & (train_targets < 36)
+    train_indices = train_mask.nonzero(as_tuple=True)[0]
+
+    test_targets = full_test.targets
+    test_mask = (test_targets >= 10) & (test_targets < 36)
+    test_indices = test_mask.nonzero(as_tuple=True)[0]
 
     # Create subsets
     train_subset = Subset(full_train, train_indices)
@@ -143,6 +158,7 @@ if __name__ == "__main__":
 
     train_dataset = RemappedDataset(train_subset)
     test_dataset = RemappedDataset(test_subset)
+    print(len(train_dataset))
 
     print(f"Training samples: {len(train_dataset)}")
     print(f"Test samples: {len(test_dataset)}")
@@ -151,15 +167,15 @@ if __name__ == "__main__":
 
     # Create data loaders
     train_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS
     )
 
     test_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS
     )
 
     # Initialize model
-    model = EMNISTNet(num_classes=26).to(device)
+    model = EMNISTNet(num_classes=NUM_CLASSES).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)

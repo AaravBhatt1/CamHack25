@@ -1,7 +1,7 @@
 from prediction.markov import predict_next_letter
 from char_mapper import CharMapper
 from vectorconvert import get_image_for_ocr
-from keyboard_hooks import start_listener
+from keyboard_hooks import KeyHook
 from prediction.inference import predict_letter_from_image
 import math
 from multiprocessing.managers import BaseManager
@@ -11,7 +11,7 @@ class QueueManager(BaseManager): pass
 
 mapper = CharMapper(rotate=False)
 context = ""
-ocr_bias = 0.7
+ocr_bias = 0.95
 
 QueueManager.register("get_queue")
 keyQueueMgr = QueueManager(address=('localhost', 50000), authkey=b'abc')
@@ -22,14 +22,14 @@ def add_key(key: str):
     q = keyQueueMgr.get_queue()
     q.put(key)
 
-def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
+def get_prediction(text_preds: dict[str, float], img_preds: dict[str, float], weight=ocr_bias) -> str:
     best = ""
     log_p_best = -math.inf
 
     for char in set(text_preds) | set(img_preds):
         p_text = max(text_preds.get(char, 1e-12), 1e-12)
         p_img  = max(img_preds.get(char, 1e-12), 1e-12)
-        log_combined = ocr_bias * math.log(p_img) + (1 - ocr_bias) * math.log(p_text)
+        log_combined = weight * math.log(p_img) + (1 - weight) * math.log(p_text)
         if log_combined > log_p_best:
             log_p_best = log_combined
             best = char
@@ -38,7 +38,6 @@ def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
 
 def finish_draw(keys: list[list[str]]):
     global context
-    print(keys)
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
     text_predictions = predict_next_letter(context)

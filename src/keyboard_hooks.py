@@ -1,155 +1,135 @@
 import evdev
 from evdev.device import InputDevice
-import keyboard
 import selectors
 import threading
 import time
 import platform
 
-_keyPressBuf = []
-_keyPressLock= threading.Lock()
 
-_stop = threading.Event()
+class KeyHook:
+    def __init__(self, on_key, on_finish, same_time_delay = 0.00, letter_timeout = 0.8):
+        self.buffer = []
+        self.same_time_delay = same_time_delay
+        self.letter_timeout = letter_timeout
+        self.on_finish = on_finish
+        self.on_key = on_key
+        self.stop_event = threading.Event()
+        self.lock = threading.Lock()
 
-def dispatcher(onFinishDraw, sameTimeDelay = 0.04, timeBetweenLetters = 0.8):
-    global _keyPressBuf
-    global _keyPressLock
-    while not _stop.is_set():
-        time.sleep(0.1)
-        if (len(_keyPressBuf) == 0 or time.time() - _keyPressBuf[-1][1] < timeBetweenLetters):
-            continue
-        toDispatch = []
-        with _keyPressLock:
-            sameTimeAccumulate = []
-            for keystr, timestamp in _keyPressBuf:
-                if (len(sameTimeAccumulate) == 0 or timestamp - sameTimeAccumulate[-1][1] < sameTimeDelay):
-                    sameTimeAccumulate.append((keystr, timestamp))
-                else:
-                    toDispatch.append([k for k,_ in sameTimeAccumulate])
-                    sameTimeAccumulate = []
-                    toDispatch.append([keystr])
-            if len(sameTimeAccumulate) > 0:
-                toDispatch.append([k for k,_ in sameTimeAccumulate])
-        _keyPressBuf = []
-        onFinishDraw(toDispatch)
+    def add_key(self, key):
+        with self.lock:
+            timestamp = time.time()
+            self.buffer.append((key, timestamp))
 
-
-def get_linux_keyboards() -> list[InputDevice]:
-    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-    kbs = []
-    for d in devices:
-        caps = d.capabilities()
-        if evdev.ecodes.EV_KEY in caps and evdev.ecodes.EV_REL not in caps and evdev.ecodes.EV_ABS not in caps:
-            kbs.append(d)
-    return kbs
-
-
-def linuxKeyReader(onKeyPress):
-    global _keyPressBuf
-    global _keyPressLock
-    global _stop
-    selector = selectors.DefaultSelector()
-
-    kbs = get_linux_keyboards()
-
-    try:
-        for i,d in enumerate(kbs):
-            d.grab()
-            selector.register(d, selectors.EVENT_READ, data=i)
-        localStop = False
-        while not localStop:
-            for key, mask in selector.select():
-                device = key.fileobj
-                for e in device.read():
-                    event = evdev.categorize(e)
-                    if isinstance(event, evdev.events.KeyEvent) and event.keystate == 1 and event.keycode.startswith("KEY_"):
-                        _,keystr = event.keycode.split("_")
-                        onKeyPress(keystr)
-                        if (keystr == "ESC"):
-                            localStop = True
-                            return
-                        with _keyPressLock:
-                            _keyPressBuf.append((keystr, time.time()))
-    finally:
-        for d in kbs:
-            d.ungrab()
-        _stop.set()
-
-def windowsKeyReader(onKeyPress):
-    global _keyPressBuf
-    global _keyPressLock
-    global _stop
-    
-    while True:
-        event = keyboard.read_event()
-        if event.event_type == "down":
-            if event.name == "unknown":
-                continue
-            if event.name == "esc":
-                break
-            with _keyPressLock:
-                _keyPressBuf.append((event.name.upper(), event.time))
-    _stop.set()
+    def _dispatcher(self):
+        while not self.stop_event.is_set():
+            time.sleep(0.02)
+            with self.lock:
+                if not self.buffer:
+                    continue
+                if time.time() - self.buffer[-1][1] < self.letter_timeout:
+                    continue
+                seq, tmp, prev_t = [], [], None
                 
+                for key, t in self.buffer:
+                    if prev_t is None or t - prev_t < self.same_time_delay:
+                        tmp.append(key)
+                    else:
+                        seq.append(tmp)
+                        tmp = [key]
+                    prev_t = t
+                if tmp:
+                    seq.append(tmp)
+                self.buffer.clear()
+            if seq:
+                self.on_finish(seq)
 
-def start_listener(onKeyPress, onFinishDraw):
-    producer = 0
-    if platform.system() == "Linux":
-        producer = threading.Thread(target=linuxKeyReader, args=(onKeyPress,), daemon=True)
-    elif platform.system() == "Windows":
-        producer = threading.Thread(target=lambda : windowsKeyReader(onKeyPress), daemon=True)
-    else:
-        print("This is only compatible with Windows and Linux")
-        raise Exception("Incompatible platform")
+    def _read_windows(self):
+        import keyboard
+        while not self.stop_event.is_set():
+            ev = keyboard.read_event()
+            if ev.event_type == "down":
+                name = ev.name.lower()
+                if name == "esc":
+                    self.stop_event.set()
+                    break
+                with self.lock:
+                    self.buffer.append((name, time.time()))
 
-    consumer = threading.Thread(target=lambda : dispatcher(onFinishDraw), daemon=True)
+    def _read_linux(self) -> None:
+        keyboards = self._get_keyboards()
 
-    producer.start()
-    consumer.start()
+        selector = selectors.DefaultSelector()
+        for kb in keyboards:
+            kb.grab()
+            selector.register(kb, selectors.EVENT_READ)
+        self._reset_keys(keyboards)
 
-    while not _stop.is_set():
-        time.sleep(1)
+        try:
+            while not self.stop_event.is_set():
+                for key, _ in selector.select(timeout=0.1):
+                    dev = key.fileobj
+                    for e in dev.read():
+                        if e.type == evdev.ecodes.EV_KEY and e.value == 1:
+                            name = evdev.ecodes.KEY[e.code][4:].lower()
+                            if name == "esc":
+                                self.stop_event.set()
+                                break
+                            self.on_key(name)
+                            with self.lock:
+                                self.buffer.append((name, time.time()))
+        finally:
+            for kb in keyboards:
+                try:
+                    kb.ungrab()
+                except OSError:
+                    pass
+            self.stop_event.set()
 
-def ofd(x):
-    print(x)
-def okp(x):
-    print(f"RECIEVED {x}")
+
+    @staticmethod
+    def _reset_keys(kbs: list[InputDevice]) -> None:
+        for kb in kbs:
+            try:
+                for _ in kb.read():
+                    pass
+            except BlockingIOError:
+                pass
+
+    @staticmethod
+    def _get_keyboards() -> list[InputDevice]:
+        keyboards = []
+        for dp in evdev.list_devices():
+            d = InputDevice(dp)
+            caps = d.capabilities()
+            if evdev.ecodes.EV_KEY in caps and \
+               evdev.ecodes.EV_REL not in caps and \
+               evdev.ecodes.EV_ABS not in caps and \
+               "mouse" not in d.name.lower() and \
+               "touchpad" not in d.name.lower():
+                keyboards.append(d)
+        return keyboards
+
+
+    def start(self):
+        sys = platform.system()
+        if sys == "Linux":
+            target = self._read_linux
+        else:
+            target = self._read_windows
+
+        reader = threading.Thread(target=target, daemon=True)
+        dispatcher = threading.Thread(target=self._dispatcher, daemon=True)
+
+        reader.start()
+        dispatcher.start()
+        reader.join()
+        dispatcher.join()
 
 if __name__ == "__main__":
-    start_listener(okp, ofd)
-
-# keystr conventions:
-# This is what is used on Linux, currently the windows version does not map to these but it will
-# generally, the keystr is an uppercase, one word format of the key (for symbols, it is the not-shifted symbol in words)
-"""
-letters: uppercase
-numbers: as expected
-Special keys:
-ESC
-F1 - F12
-DELETE
-BACKSPACE
-ENTER
-RIGHTSHIFT
-LEFTSHIFT
-GRAVE (`)
-MINUS
-EQUAL
-LEFTBRACE
-RIGHTBRACE
-SEMICOLON
-APOSTROPHE
-BACKSLASH
-COMMA
-DOT
-SLASH
-TAB
-CAPSLOCK
-LEFTCTRL
-LEFTMETA (left windows)
-LEFTALT
-SPACE
-RIGHTALT
-COMPOSE (apps/menu)
-Arrow keys: LEFT/DOWN/UP/RIGHT
-"""
+    def on_finish(groups):
+        print(groups)
+    def on_key(k):
+        print(f"FOUND {k}")
+    collector = KeyHook(on_key, on_finish)
+    collector.start()
