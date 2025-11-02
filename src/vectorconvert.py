@@ -49,7 +49,7 @@ def _normalise_strokes(strokes, norm_points):
         offset += n
     return norm_strokes
 
-def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
+def get_image_for_ocr(data: list[tuple[float, float]], sideways_keyboard: bool=False) -> np.ndarray:
     img = np.zeros((28, 28), dtype=np.float32)
 
     strokes = _get_strokes(data)
@@ -65,7 +65,8 @@ def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
         for i in range(1, len(pts)):
             cv2.line(img, tuple(pts[i-1]), tuple(pts[i]), color=1.0, thickness=1, lineType=cv2.LINE_AA)
     img = cv2.GaussianBlur(img, (3, 3,), 0.5)
-    img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    if not sideways_keyboard:
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
     if img.max() > 0:
         img /= img.max()
