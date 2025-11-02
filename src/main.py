@@ -4,13 +4,23 @@ from vectorconvert import get_image_for_ocr
 from keyboard_hooks import start_listener
 from prediction.inference import predict_letter_from_image
 import math
+from multiprocessing.managers import BaseManager
+
+class QueueManager(BaseManager): pass
+
 
 mapper = CharMapper(rotate=False)
 context = ""
 ocr_bias = 0.7
 
+QueueManager.register("get_queue")
+keyQueueMgr = QueueManager(address=('localhost', 50000), authkey=b'abc')
+keyQueueMgr.connect()
+
 def add_key(key: str):
     print(f"key {key}")
+    q = keyQueueMgr.get_queue()
+    q.put(key)
 
 def get_prediction(text_preds, img_preds, weight=ocr_bias) -> str:
     best = ""
@@ -38,6 +48,7 @@ def finish_draw(keys: list[list[str]]):
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
     context += prediction
+
 
 
 start_listener(add_key, finish_draw)
