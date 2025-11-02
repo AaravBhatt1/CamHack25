@@ -57,7 +57,7 @@ KEY_MAP = {
 
 # --- Global State ---
 key_history = []
-MAX_HISTORY = 10 # Only display the last 10 keypresses
+MAX_HISTORY = 50 # Only display the last 50 keypresses
 
 class QueueManager(BaseManager): pass
 
@@ -101,6 +101,10 @@ def update_display():
 
     root.update_idletasks() # Force redraw
 
+def clearDisplay():
+    key_history = []
+    root.after(10, update_display)
+
 # Queue polling
 def check_queue(root, q, delay = 10):
     #print("CHECKING QQQ")
@@ -109,7 +113,9 @@ def check_queue(root, q, delay = 10):
         try:
             key = str(q.get_nowait()).upper()
             print("K", key)
-            if key != 'ESC':  # Check if key is not ESC
+            if key == "STOP":
+                clearDisplay()
+            elif key != 'ESC':  # Check if key is not ESC
                 on_press(key)
         except Empty:
             print("EEEEMPT")
