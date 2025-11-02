@@ -4,6 +4,7 @@ from vectorconvert import get_image_for_ocr
 from keyboard_hooks import KeyHook
 from prediction.inference import predict_letter_from_image
 import math
+import numpy as np
 import matplotlib.pyplot
 from multiprocessing.managers import BaseManager
 
@@ -41,13 +42,16 @@ def finish_draw(keys: list[list[str]]):
     global context
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
-    text_predictions = predict_next_letter(context)
-    img_predictions = {}
-    #img_predictions = predict_letter_from_image(img)
+    img = np.rot90(img)
+    img = np.fliplr(img)
 
-    prediction = get_prediction(text_predictions, img_predictions)
-    print(prediction)
-    context += prediction
+    # text_predictions = predict_next_letter(context)
+    # img_predictions = {}
+    img_predictions = predict_letter_from_image(img)
+    print({k: v for k, v in sorted(img_predictions.items(), key=lambda item: item[1])})
+    # prediction = get_prediction(text_predictions, img_predictions)
+    # print(prediction)
+    # context += prediction
 
 def save_plot(img):
     matplotlib.use('Agg')
