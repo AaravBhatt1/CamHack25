@@ -56,7 +56,7 @@ KEY_MAP = {
     'PAGEDOWN': (675, 25)
 }
 
-flip == False
+flip = False
 
 # --- Global State ---
 key_history = []
@@ -69,7 +69,7 @@ def on_press(key):
         # Get position from map
         pos = KEY_MAP[key]
         if flip:
-            pos[0], pos[1] = pos[1], pos[0]       
+            pos = pos[::-1]     
         
         # Update key history
         key_history.append((key, pos, 0))
