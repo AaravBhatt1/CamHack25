@@ -50,7 +50,7 @@ class EMNISTPredictor:
             image_array: numpy array of shape (28, 28) with pixel values in [0, 255] or [0, 1]
 
         Returns:
-            dict: {character: probability} for all 26 characters
+            dict: {character: probability} for all 26 characters (A-Z)
         """
         # Validate input shape
         if image_array.shape != (28, 28):
@@ -94,7 +94,9 @@ class EMNISTPredictor:
 _global_predictor = None
 
 
-def predict_letter_from_image(image_array: np.ndarray, model_path=None) -> dict[str, float]:
+def predict_letter_from_image(
+    image_array: np.ndarray, model_path=None
+) -> dict[str, float]:
     """
     Convenience function to get probability distribution.
     Loads model on first call and reuses it.

@@ -76,19 +76,15 @@ class EMNISTNet(nn.Module):
 
 def get_character_from_label(label):
     """Convert label 0-25 to character A-Z"""
-    if 0 <= label <= 9:
-        return str(label)
-    elif 10 <= label < 26:
-        return chr(ord("A") + label - 10)
+    if 0 <= label < 26:
+        return chr(ord("A") + label)
     return "?"
 
 
 def get_label_from_character(char):
     """Convert character A-Z to label 0-25"""
-    if char.isdigit():
-        return int(char)
     if char.isupper() and "A" <= char <= "Z":
-        return ord(char) - ord("A") + 10
+        return ord(char) - ord("A")
     return None
 
 
@@ -100,10 +96,10 @@ def count_parameters(model):
 if __name__ == "__main__":
     # Configuration
     BATCH_SIZE = 128
-    EPOCHS = 15
+    EPOCHS = 5
     LEARNING_RATE = 0.001
     NUM_WORKERS = 0
-    NUM_CLASSES = 36
+    NUM_CLASSES = 26
 
     # Device setup
     if torch.backends.mps.is_available():
@@ -137,11 +133,11 @@ if __name__ == "__main__":
     print("Filtering for uppercase letters (A-Z)...")
 
     train_targets = full_train.targets
-    train_mask = train_targets < 36
+    train_mask = (train_targets >= 10) & (train_targets < 36)
     train_indices = train_mask.nonzero(as_tuple=True)[0]
 
     test_targets = full_test.targets
-    test_mask = test_targets < 36
+    test_mask = (test_targets >= 10) & (test_targets < 36)
     test_indices = test_mask.nonzero(as_tuple=True)[0]
 
     # Create subsets
@@ -155,7 +151,7 @@ if __name__ == "__main__":
 
         def __getitem__(self, idx):
             img, label = self.subset[idx]
-            return img, label  # Remap 10-35 to 0-25
+            return img, label - 10  # Remap 10-35 to 0-25
 
         def __len__(self):
             return len(self.subset)
@@ -166,7 +162,7 @@ if __name__ == "__main__":
 
     print(f"Training samples: {len(train_dataset)}")
     print(f"Test samples: {len(test_dataset)}")
-    print(f"Classes: 36 (0-9A-Z)")
+    print(f"Classes: 26 (A-Z)")
     print("=" * 80)
 
     # Create data loaders
