@@ -45,7 +45,7 @@ class EMNISTNet(nn.Module):
             dummy = self.pool(F.relu(self.conv2(dummy)))
             dummy = F.relu(self.conv3(dummy))
             num_features = dummy.numel()
-        
+
         self.fc1 = nn.Linear(num_features, 256)
         self.fc2 = nn.Linear(256, num_classes)
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 128
     EPOCHS = 15
     LEARNING_RATE = 0.001
-    NUM_WORKERS = 2
+    NUM_WORKERS = 0
     NUM_CLASSES = 36
 
     # Device setup
@@ -137,11 +137,11 @@ if __name__ == "__main__":
     print("Filtering for uppercase letters (A-Z)...")
 
     train_targets = full_train.targets
-    train_mask = (train_targets < 36)
+    train_mask = train_targets < 36
     train_indices = train_mask.nonzero(as_tuple=True)[0]
 
     test_targets = full_test.targets
-    test_mask = (test_targets < 36)
+    test_mask = test_targets < 36
     test_indices = test_mask.nonzero(as_tuple=True)[0]
 
     # Create subsets
