@@ -45,7 +45,6 @@ class EMNISTNet(nn.Module):
             dummy = self.pool(F.relu(self.conv2(dummy)))
             dummy = F.relu(self.conv3(dummy))
             num_features = dummy.numel()
-
         self.fc1 = nn.Linear(num_features, 256)
         self.fc2 = nn.Linear(256, num_classes)
 
@@ -96,9 +95,9 @@ def count_parameters(model):
 if __name__ == "__main__":
     # Configuration
     BATCH_SIZE = 128
-    EPOCHS = 5
+    EPOCHS = 15
     LEARNING_RATE = 0.001
-    NUM_WORKERS = 0
+    NUM_WORKERS = 2
     NUM_CLASSES = 26
 
     # Device setup
@@ -151,7 +150,7 @@ if __name__ == "__main__":
 
         def __getitem__(self, idx):
             img, label = self.subset[idx]
-            return img, label - 10  # Remap 10-35 to 0-25
+            return img, label - 10 # Remap 10-35 to 0-25
 
         def __len__(self):
             return len(self.subset)

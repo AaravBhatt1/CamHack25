@@ -62,7 +62,6 @@ MAX_HISTORY = 10 # Only display the last 10 keypresses
 class QueueManager(BaseManager): pass
 
 def on_press(key):
-   
     if key in KEY_MAP:
         # Get position from map
         pos = KEY_MAP[key]        
