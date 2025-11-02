@@ -42,8 +42,10 @@ def finish_draw(keys: list[list[str]]):
     global context
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
-    img = np.rot90(img)
+    # img = np.rot90(img)
+    img = np.flipud(img)
     img = np.fliplr(img)
+    img = np.rot90(img)
 
     # text_predictions = predict_next_letter(context)
     # img_predictions = {}
