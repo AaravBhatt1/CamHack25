@@ -5,18 +5,9 @@ from scipy.ndimage import gaussian_filter
 def _is_adjacent(a: tuple[float, float], b: tuple[float, float]) -> bool:
     return abs(a[0]-b[0]) <= 1 and abs(a[1]-b[1]) <= 1
 
-<<<<<<< HEAD
 def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, float]]]:
     if not data:
         return []
-=======
-def is_adjacent(a, b):
-    return abs(a[0] - b[0]) <= 1.3 and abs(a[1] - b[1]) <= 1.3
-
-
-def get_strokes(data):
-    sorted_data = sorted(data, key=lambda p: p[2])
->>>>>>> 5d21c41 (THE ANSWER)
     strokes = []
     current = [data[0]]
     for i in range(1, len(data)):
@@ -54,20 +45,8 @@ def _get_bins(x: np.ndarray, y: np.ndarray, noise=0.30) -> np.ndarray:
 
     if grid.max() > 0:
         grid /= grid.max()
-<<<<<<< HEAD
     grid = grid ** 0.025
     bw_grid = grid
-=======
-    grid = grid**0.03
-    # Flip the grid vertically so it displays correctly
-    bw_grid = np.flipud(grid)
-
-    # Apply EMNIST rotation/transpose to match training data format
-    # EMNIST images are rotated 90° clockwise and transposed
-    bw_grid = np.rot90(bw_grid, k=3)  # Rotate 270 degrees (90° clockwise = 270° CCW)
-    bw_grid = np.fliplr(bw_grid)  # Flip horizontally
-
->>>>>>> 5d21c41 (THE ANSWER)
     return bw_grid
 
 def get_image_for_ocr(data: list[tuple[float, float]]) -> np.ndarray:
