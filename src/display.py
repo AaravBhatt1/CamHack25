@@ -69,7 +69,7 @@ def on_press(key):
         # Get position from map
         x, y = KEY_MAP[key]
         if flip:
-            pos = (y, x)  
+            pos = (400 - y, x)  
         else:
             pos = (x, y) 
         
@@ -142,7 +142,7 @@ def on_closing():
     root.destroy()
 
 if __name__ == "__main__":
-    if len(sys.argv > 1):
+    if len(sys.argv) > 1:
         arg = sys.argv[1]
         flip = arg == "flip"
 
