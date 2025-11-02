@@ -1,6 +1,6 @@
 import tkinter as tk
 import time
-from Queue import Empty
+from queue import Empty
 from multiprocessing.managers import BaseManager
 
 # --- Configuration ---
@@ -91,8 +91,7 @@ MAX_HISTORY = 10 # Only display the last 10 keypresses
 class QueueManager(BaseManager): pass
 
 def on_press(key):
-   
-    if key in KEY_MAP or key in ['D']:
+    if key in KEY_MAP: #or key in ['D']:
         # Get position from map
         pos = KEY_MAP[key]        
         
@@ -135,13 +134,16 @@ def update_display():
 
 # Queue polling
 def check_queue(root, q, delay = 50):
+    #print("CHECKING QQQ")
+    #q = m.get_queue()
     if running:
         try:
-            key = str(q.get_nowait()).upper()[1:-1]
+            key = str(q.get_nowait()).upper()
+            print("K", key)
             if key != 'ESC':  # Check if key is not ESC
                 on_press(key)
         except Empty:
-            pass
+            print("EEEEMPT")
         finally:
             root.after(delay, check_queue, root, q)  # Schedule next check
 
@@ -171,7 +173,6 @@ if __name__ == "__main__":
     m = QueueManager(address=('localhost', 50000), authkey=b'abc')
     m.connect()
     q = m.get_queue()
-
     # Start queue checking
     check_queue(root, q)
     
