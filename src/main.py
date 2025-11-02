@@ -5,10 +5,9 @@ from keyboard_hooks import KeyHook
 import subprocess
 from prediction.inference import predict_letter_from_image
 import math
-import matplotlib
+import sys
 from multiprocessing.managers import BaseManager
 import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing.managers import BaseManager
 
 
@@ -18,6 +17,7 @@ class QueueManager(BaseManager):
 mapper = CharMapper(rotate=False)
 context = ""
 ocr_bias = 0.95
+_flag = False
 
 QueueManager.register("get_queue")
 keyQueueMgr = QueueManager(address=("localhost", 50000), authkey=b"abc")
@@ -48,7 +48,7 @@ def get_prediction(
 def finish_draw(keys: list[list[str]]):
     global context
     avg = mapper.averagePoints(keys)
-    img = get_image_for_ocr(avg)
+    img = get_image_for_ocr(avg, _flag)
     text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
     prediction = get_prediction(text_predictions, img_predictions)
@@ -63,5 +63,8 @@ def finish_draw(keys: list[list[str]]):
 
 
 if __name__ == "__main__":
+    if (len(sys.argv) > 1):
+        arg = sys.argv[1]
+        _flag = arg.lower() == "flip"
     hook = KeyHook(add_key, finish_draw)
     hook.start()
