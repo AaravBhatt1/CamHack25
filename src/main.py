@@ -2,6 +2,7 @@ from prediction.markov import predict_next_letter
 from char_mapper import CharMapper
 from vectorconvert import get_image_for_ocr
 from keyboard_hooks import KeyHook
+import subprocess
 from prediction.inference import predict_letter_from_image
 import math
 import matplotlib
@@ -53,7 +54,7 @@ def finish_draw(keys: list[list[str]]):
     text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
     prediction = get_prediction(text_predictions, img_predictions)
-    print(prediction)
+    subprocess.run(["ydotool", "type", prediction])
     context += prediction
     img = np.fliplr(img)
     img = np.rot90(img, k=1)

@@ -86,9 +86,6 @@ def _load_or_train_model():
     try:
         with open(_MODEL_PATH, "rb") as f:
             _model_probs = pickle.load(f)
-            text = _get_corpus()
-            test_idx = int(0.8 * len(text))
-            _test_model(text[test_idx:])
     except FileNotFoundError:
         _train_model()
     _model_loaded = True
