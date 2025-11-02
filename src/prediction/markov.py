@@ -11,7 +11,7 @@ _model_loaded = False
 _CORPUS_PATH = Path(__file__).parent / "corpus.txt"
 _MODEL_PATH = Path(__file__).parent / "markov_model.pkl"
 
-ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "
 CHAR_TO_IDX = {c: i for i, c in enumerate(ALPHABET)}
 IDX_TO_CHAR = {i: c for c, i in CHAR_TO_IDX.items()}
 NUM_CHARS = len(ALPHABET)
@@ -75,16 +75,21 @@ def _load_or_train_model():
 def predict_next_letter(context: str) -> dict[str, float]:
     if not _model_loaded:
         _load_or_train_model()
-    context = context.upper().replace(" ", "")[-_order:]
+    context = context.upper()[-_order:]
+
+    probs = {}
 
     for k in range(_order, 0, -1):
         ctx = context[-k:]
         if ctx in _model_probs:
             probs_array =_model_probs[ctx]
-            return {IDX_TO_CHAR[i]: probs_array[i] for i in range(NUM_CHARS)}
+            probs = {IDX_TO_CHAR[i]: probs_array[i] for i in range(NUM_CHARS)}
 
-    uniform = 1.0 / NUM_CHARS
-    return {c: uniform for c in ALPHABET}
+    if probs == {}:
+        uniform = 1.0 / NUM_CHARS
+        probs = {c: uniform for c in ALPHABET}
+    probs[" "]=1e-12
+    return probs
 
 if __name__ == "__main__":
     _load_or_train_model()
