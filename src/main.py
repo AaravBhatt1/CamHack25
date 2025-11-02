@@ -6,6 +6,9 @@ from prediction.inference import predict_letter_from_image
 import math
 import matplotlib
 from multiprocessing.managers import BaseManager
+import numpy as np
+import matplotlib.pyplot as plt
+from multiprocessing.managers import BaseManager
 
 class QueueManager(BaseManager): pass
 
@@ -43,11 +46,11 @@ def finish_draw(keys: list[list[str]]):
     save_plot(img)
     text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
-    print(img_predictions)
-
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
     context += prediction
+    img = np.rot90(img)
+    img = np.fliplr(img)
 
 def save_plot(img):
     matplotlib.use('Agg')

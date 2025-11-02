@@ -16,7 +16,6 @@ CHAR_TO_IDX = {c: i for i, c in enumerate(ALPHABET)}
 IDX_TO_CHAR = {i: c for c, i in CHAR_TO_IDX.items()}
 NUM_CHARS = len(ALPHABET)
 
-
 def _test_model(test_text):
     correct_chars = 0
     total_chars = 0

@@ -28,7 +28,7 @@ class EMNISTNet(nn.Module):
     Proven to achieve 85-90% accuracy on EMNIST Letters.
     """
 
-    def __init__(self, num_classes=26):
+    def __init__(self, num_classes=36):
         super(EMNISTNet, self).__init__()
 
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
@@ -45,7 +45,6 @@ class EMNISTNet(nn.Module):
             dummy = self.pool(F.relu(self.conv2(dummy)))
             dummy = F.relu(self.conv3(dummy))
             num_features = dummy.numel()
-        
         self.fc1 = nn.Linear(num_features, 256)
         self.fc2 = nn.Linear(256, num_classes)
 
@@ -137,7 +136,7 @@ if __name__ == "__main__":
     train_indices = train_mask.nonzero(as_tuple=True)[0]
 
     test_targets = full_test.targets
-    test_mask = (train_targets >= 10) & (test_targets < 36)
+    test_mask = (test_targets >= 10) & (test_targets < 36)
     test_indices = test_mask.nonzero(as_tuple=True)[0]
 
     # Create subsets
