@@ -103,7 +103,7 @@ def update_display():
     root.update_idletasks() # Force redraw
 
 # Queue polling
-def check_queue(root, q, delay = 50):
+def check_queue(root, q, delay = 10):
     #print("CHECKING QQQ")
     #q = m.get_queue()
     if running:
