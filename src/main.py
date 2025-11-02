@@ -32,13 +32,13 @@ def finish_draw(keys: list[list[str]]):
     avg = mapper.averagePoints(keys)
     img = get_image_for_ocr(avg)
     save_plot(img)
-    text_predictions = predict_next_letter(context)
+    # text_predictions = predict_next_letter(context)
     img_predictions = predict_letter_from_image(img)
     print(img_predictions)
-
-    prediction = get_prediction(text_predictions, img_predictions)
-    print(prediction)
-    context += prediction
+    print({k: v for k, v in sorted(img_predictions.items(), key=lambda item: item[1])})
+    # prediction = get_prediction(text_predictions, img_predictions)
+    # print(prediction)
+    # context += prediction
 
 def save_plot(img):
     matplotlib.use('Agg')
