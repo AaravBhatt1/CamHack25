@@ -10,28 +10,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing.managers import BaseManager
 
-class QueueManager(BaseManager): pass
+
+class QueueManager(BaseManager):
+    pass
 
 mapper = CharMapper(rotate=False)
 context = ""
 ocr_bias = 0.95
 
 QueueManager.register("get_queue")
-keyQueueMgr = QueueManager(address=('localhost', 50000), authkey=b'abc')
+keyQueueMgr = QueueManager(address=("localhost", 50000), authkey=b"abc")
 keyQueueMgr.connect()
+
 
 def add_key(key: str):
     print(f"key {key}")
     q = keyQueueMgr.get_queue()
     q.put(key)
 
-def get_prediction(text_preds: dict[str, float], img_preds: dict[str, float], weight=ocr_bias) -> str:
+
+def get_prediction(
+    text_preds: dict[str, float], img_preds: dict[str, float], weight=ocr_bias
+) -> str:
     best = ""
     log_p_best = -math.inf
 
     for char in set(text_preds) | set(img_preds):
         p_text = max(text_preds.get(char, 1e-12), 1e-12)
-        p_img  = max(img_preds.get(char, 1e-12), 1e-12)
+        p_img = max(img_preds.get(char, 1e-12), 1e-12)
         log_combined = weight * math.log(p_img) + (1 - weight) * math.log(p_text)
         if log_combined > log_p_best:
             log_p_best = log_combined
@@ -49,14 +55,16 @@ def finish_draw(keys: list[list[str]]):
     prediction = get_prediction(text_predictions, img_predictions)
     print(prediction)
     context += prediction
-    img = np.rot90(img)
     img = np.fliplr(img)
+    img = np.rot90(img, k=1)
 
 def save_plot(img):
-    matplotlib.use('Agg')
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+
     plt.imshow(img)
-    plt.savefig('image.png')
+    plt.savefig("image.png")
+
 
 if __name__ == "__main__":
     hook = KeyHook(add_key, finish_draw)
