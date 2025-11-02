@@ -17,7 +17,7 @@ def get_transform():
             transforms.ToTensor(),
             transforms.Normalize(
                 (0.1307,), (0.3081,)
-            ),  # MNIST/EMNIST standard normalization
+            )  # MNIST/EMNIST standard normalization
         ]
     )
 
@@ -28,7 +28,7 @@ class EMNISTNet(nn.Module):
     Proven to achieve 85-90% accuracy on EMNIST Letters.
     """
 
-    def __init__(self, num_classes=36):
+    def __init__(self, num_classes=26):
         super(EMNISTNet, self).__init__()
 
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
@@ -95,7 +95,7 @@ def count_parameters(model):
 if __name__ == "__main__":
     # Configuration
     BATCH_SIZE = 128
-    EPOCHS = 15
+    EPOCHS = 5
     LEARNING_RATE = 0.001
     NUM_WORKERS = 2
     NUM_CLASSES = 26
