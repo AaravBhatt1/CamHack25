@@ -4,6 +4,7 @@ from vectorconvert import get_image_for_ocr
 from keyboard_hooks import KeyHook
 from prediction.inference import predict_letter_from_image
 import math
+import matplotlib.pyplot
 from multiprocessing.managers import BaseManager
 
 class QueueManager(BaseManager): pass
@@ -48,9 +49,14 @@ def finish_draw(keys: list[list[str]]):
     print(prediction)
     context += prediction
 
+def save_plot(img):
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    plt.imshow(img)
+    plt.savefig('image.png')
 
-
-start_listener(add_key, finish_draw)
-
+if __name__ == "__main__":
+    hook = KeyHook(add_key, finish_draw)
+    hook.start()
 
 
