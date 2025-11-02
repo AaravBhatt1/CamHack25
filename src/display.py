@@ -3,38 +3,9 @@ import time
 from Queue import Empty
 from multiprocessing.managers import BaseManager
 
-# --- Configuration ---
-# Define a comprehensive coordinate map for keys based on a standard QWERTY layout.
-# Key: (X_position, Y_position) - scaled for a typical canvas size.
+# Coordinate map for keys
+# Key: (X_position, Y_position).
 KEY_MAP = {
-    # Previous keyboard mapping
-    # # Number row
-    # '`': (50, 50), '1': (100, 50), '2': (150, 50), '3': (200, 50), '4': (250, 50),
-    # '5': (300, 50), '6': (350, 50), '7': (400, 50), '8': (450, 50), '9': (500, 50),
-    # '0': (550, 50), '-': (600, 50), '=': (650, 50),
-    # keyboard.Key.backspace: (725, 50),
-    
-    # # Top letter row
-    # keyboard.Key.tab: (75, 100),
-    # 'q': (125, 100), 'w': (175, 100), 'e': (225, 100), 'r': (275, 100),
-    # 't': (325, 100), 'y': (375, 100), 'u': (425, 100), 'i': (475, 100),
-    # 'o': (525, 100), 'p': (575, 100), '[': (625, 100), ']': (675, 100),
-    
-    # # Home row
-    # keyboard.Key.caps_lock: (90, 150),
-    # 'a': (150, 150), 's': (200, 150), 'd': (250, 150), 'f': (300, 150),
-    # 'g': (350, 150), 'h': (400, 150), 'j': (450, 150), 'k': (500, 150),
-    # 'l': (550, 150), ';': (600, 150), "'": (650, 150),
-    # keyboard.Key.enter: (725, 150),
-    
-    # # Bottom row
-    # keyboard.Key.shift: (100, 200), '\\': (135, 200),
-    # 'z': (175, 200), 'x': (225, 200), 'c': (275, 200), 'v': (325, 200),
-    # 'b': (375, 200), 'n': (425, 200), 'm': (475, 200), ',': (525, 200),
-    # '.': (575, 200), '/': (625, 200),
-    # keyboard.Key.shift_r: (700, 200),
-
-    # New keyboard mapping using keyboard_hooks.py conventions
     # Number row
     'GRAVE': (50, 50), '1': (100, 50), '2': (150, 50), '3': (200, 50), '4': (250, 50),
     '5': (300, 50), '6': (350, 50), '7': (400, 50), '8': (450, 50), '9': (500, 50),
@@ -92,7 +63,7 @@ class QueueManager(BaseManager): pass
 
 def on_press(key):
    
-    if key in KEY_MAP or key in ['D']:
+    if key in KEY_MAP:
         # Get position from map
         pos = KEY_MAP[key]        
         
@@ -111,10 +82,8 @@ def update_display():
     title_text = "LAST 10 KEYPRESSES (QWERTY LAYOUT)"
     canvas.create_text(300, 20, text=title_text, fill='white', font=('Arial', 14))
 
-    # Draw a representation of all tracked keys for context
-
-    # for key_char, (x, y) in KEY_MAP.items():
-    #     # Draw a dim background circle for all available keys
+    # Draw a dim background circle for every key
+    # for key_char, (x, y) in KEY_MAP.items():    
     #     canvas.create_oval(x-15, y-15, x+15, y+15, outline='#333333')
     
     # Draw keypress history in reverse order (most recent is brightest/largest)
