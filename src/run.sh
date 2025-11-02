@@ -4,9 +4,9 @@ set -euo pipefail
 ARGS=("$@")
 
 YDTOOLD_BIN=/usr/bin/ydotoold
-DISPLAY=./display.py
-SERVER=./managerServer.py
-LAUNCH=./main.py
+DISPLAY_PY=./display.py
+SERVER_PY=./managerServer.py
+LAUNCH_PY=./main.py
 LOGDIR=./logs/
 mkdir -p "$LOGDIR"
 
@@ -23,19 +23,20 @@ YDTOOLD_PID=$!
 
 echo "Starting server..."
 
-python3 "$SERVER" > "$LOGDIR/server.log" 2>&1 &
+python3 "$SERVER_PY" > "$LOGDIR/server.log" 2>&1 &
 SERVER_PID=$!
 
 sleep 2
 
 echo "Ydotoold ready, starting display..."
 
-export DISPLAY=:0
+export DISPLAY=$DISPLAY
+export WAYLAND_DISPLAY=$WAYLAND_DISPLAY
 if [ "${#ARGS[@]}" -eq 0 ]; then
-    python3 "$DISPLAY" > "$LOGDIR/display.log" 2>&1 &
+    python3 "$DISPLAY_PY" > "$LOGDIR/display.log" 2>&1 &
     DISPLAY_PID=$!
 else
-    python3 "$DISPLAY" "${ARGS[@]}" > "$LOGDIR/display.log" 2>&1 &
+    python3 "$DISPLAY_PY" "${ARGS[@]}" > "$LOGDIR/display.log" 2>&1 &
     DISPLAY_PID=$!
 fi
 
@@ -43,10 +44,10 @@ sleep 1
 
 echo "Starting main..."
 if [ "${#ARGS[@]}" -eq 0 ]; then
-    sudo python3 "$LAUNCH" > "$LOGDIR/main.log" 2>&1 &
+    sudo python3 "$LAUNCH_PY" > "$LOGDIR/main.log" 2>&1 &
     LAUNCH_PID=$!
 else
-    sudo python3 "$LAUNCH" "${ARGS[@]}" > "$LOGDIR/main.log" 2>&1 &
+    sudo python3 "$LAUNCH_PY" "${ARGS[@]}" > "$LOGDIR/main.log" 2>&1 &
     LAUNCH_PID=$!
 fi
 
