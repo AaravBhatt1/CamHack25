@@ -12,10 +12,15 @@ def _get_strokes(data: list[tuple[float, float]]) -> list[list[tuple[float, floa
     for i in range(1, len(data)):
         if not _is_adjacent(data[i], data[i-1]):
             strokes.append(current)
+            if _is_adjacent(strokes[-1][0], strokes[-1][-1]):
+                strokes[-1].append(strokes[-1][0])
             current = [data[i]]
         else:
             current.append(data[i])
+
     strokes.append(current)
+    if _is_adjacent(strokes[-1][0], strokes[-1][-1]):
+        strokes[-1].append(strokes[-1][0])
     return strokes
 
 def _normalise_points(points) -> list[tuple[float, float]]:
