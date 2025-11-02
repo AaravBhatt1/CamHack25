@@ -67,9 +67,11 @@ class QueueManager(BaseManager): pass
 def on_press(key):
     if key in KEY_MAP:
         # Get position from map
-        pos = KEY_MAP[key]
+        x, y = KEY_MAP[key]
         if flip:
-            pos = pos[::-1]     
+            pos = (y, x)  
+        else:
+            pos = (x, y) 
         
         # Update key history
         key_history.append((key, pos, 0))
